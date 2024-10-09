@@ -28,7 +28,10 @@ namespace aerial_robot_model {
     kinematicsInit();
     stabilityInit();
     staticsInit();
-
+    ros::NodeHandle nh;
+    //-----------------------------------------
+    effector_origin_from_cog_pub_ = nh.advertise<geometry_msgs::PointStamped>("effortor_from_cog", 1);
+    //-----------------------------------------
     // update robot model instantly for fixed model
     if (fixed_model_) {
       updateRobotModel();
@@ -354,10 +357,14 @@ namespace aerial_robot_model {
       }
 
     /* CoG */
+
     KDL::Frame f_baselink = seg_tf_map.at(baselink_);
     KDL::Frame cog;
+
     cog.M = f_baselink.M * cog_desire_orientation_.Inverse();
     cog.p = link_inertia.getCOG();
+    // ROS_INFO_STREAM(cog.p.data[0]<<" "<<cog.p.data[1]<<" "<< cog.p.data[2]);
+
     setCog(cog);
     mass_ = link_inertia.getMass();
     ROS_INFO_STREAM_ONCE("[aerial_robot_model] robot mass is " << mass_);
@@ -377,6 +384,24 @@ namespace aerial_robot_model {
       }
     setRotorsNormalFromCog(rotors_normal_from_cog);
     setRotorsOriginFromCog(rotors_origin_from_cog);
+
+    // ---------------------------------------
+    // New code
+    KDL::Vector effector_origin_from_cog;
+    std::string effector = "end_effector";
+    KDL::Frame f = seg_tf_map.at(effector);
+    effector_origin_from_cog = (cog.Inverse() * f).p;
+
+    setEffOriginFromCog(effector_origin_from_cog);
+
+    geometry_msgs::PointStamped eff_position;
+    eff_position.point.x = effector_origin_from_cog.data[0];
+    eff_position.point.y = effector_origin_from_cog.data[1];
+    eff_position.point.z = effector_origin_from_cog.data[2];
+    //ROS_INFO_STREAM(eff_position);
+    effector_origin_from_cog_pub_.publish(eff_position);
+
+    //---------------------------------------
 
     /* statics */
     calcStaticThrust();

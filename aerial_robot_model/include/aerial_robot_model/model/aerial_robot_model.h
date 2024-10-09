@@ -193,6 +193,10 @@ namespace aerial_robot_model {
     int rotor_num_;
     std::vector<KDL::Vector> rotors_origin_from_cog_;
     std::vector<KDL::Vector> rotors_normal_from_cog_;
+    // -------------------------
+    KDL::Vector effector_origin_from_cog_;
+    ros::Publisher effector_origin_from_cog_pub_;
+    //----------------------------
     KDL::Tree tree_;
     std::string thrust_link_;
     bool verbose_;
@@ -224,6 +228,9 @@ namespace aerial_robot_model {
     std::mutex mutex_cog2baselink_;
     std::mutex mutex_inertia_;
     std::mutex mutex_rotor_origin_;
+    //--------------------------
+    std::mutex mutex_effector_origin_;
+     //--------------------------
     std::mutex mutex_rotor_normal_;
     std::mutex mutex_seg_tf_;
     std::mutex mutex_desired_baselink_rot_;
@@ -271,6 +278,14 @@ namespace aerial_robot_model {
       std::lock_guard<std::mutex> lock(mutex_rotor_origin_);
       rotors_origin_from_cog_ = rotors_origin_from_cog;
     }
+    //---------------------------------
+    //New code
+      void setEffOriginFromCog(const KDL::Vector effector_origin_from_cog)
+    {
+      std::lock_guard<std::mutex> lock(mutex_effector_origin_);
+      effector_origin_from_cog_ = effector_origin_from_cog;
+    }
+     //---------------------------------
     void setSegmentsTf(const std::map<std::string, KDL::Frame> seg_tf_map)
     {
       std::lock_guard<std::mutex> lock(mutex_seg_tf_);
