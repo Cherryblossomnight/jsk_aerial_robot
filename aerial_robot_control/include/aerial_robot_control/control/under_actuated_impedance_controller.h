@@ -44,7 +44,9 @@
 #include <spinal/PMatrixPseudoInverseWithInertia.h>
 #include <ros/ros.h>
 #include <thread>
-
+#include <std_msgs/Float64.h>
+#include <std_msgs/UInt8.h>
+#include <geometry_msgs/Point.h>
 namespace aerial_robot_control
 {
   class UnderActuatedImpedanceController: public UnderActuatedController
@@ -91,7 +93,25 @@ namespace aerial_robot_control
     bool realtime_update_;
     std::thread gain_generator_thread_;
 
+    Eigen::VectorXd joint_pos_ = Eigen::VectorXd::Zero(3);
+    Eigen::VectorXd joint_vel_ = Eigen::VectorXd::Zero(3); 
+    Eigen::VectorXd target_joint_pos_ = Eigen::VectorXd::Zero(3);
+    Eigen::VectorXd target_joint_vel_ = Eigen::VectorXd::Zero(3);
+    Eigen::VectorXd target_joint_acc_ = Eigen::VectorXd::Zero(3);
+    Eigen::MatrixXd Pre_Bpr_ = Eigen::MatrixXd::Zero(3, 6);
+    Eigen::VectorXd Pre_Pe_ = Eigen::VectorXd::Zero(3);
+    Eigen::VectorXd target_thrust_z_term_;
+    Eigen::VectorXd target_thrust_yaw_term_;
+    ros::Time time_;
+    ros::Subscriber joint_state_sub_;
+    ros::Subscriber joint_cmd_sub_;
+    ros::Subscriber pos_cmd_sub_;
+    ros::Subscriber mode_sub_;
+    std::vector<ros::Publisher> joint_cmd_pubs_;
+    geometry_msgs::Point pos_cmd_;
+    std_msgs::UInt8 mode_;
     //private functions
+
     virtual bool checkRobotModel();
     void resetGain() { K_ = Eigen::MatrixXd(); }
 
@@ -106,12 +126,21 @@ namespace aerial_robot_control
     virtual void sendFourAxisCommand();
 
     Eigen::MatrixXd getQInv();
-    virtual void allocateYawTerm();
+
     void allocateThrustTerm(Eigen::VectorXd &target_thrust_z_term);
+    
     void cfgLQICallback(aerial_robot_control::LQIConfig &config, uint32_t level); //dynamic reconfigure
 
     void sendRotationalInertiaComp();
 
     void gainGeneratorFunc();
+
+    void jointStateCallback(const sensor_msgs::JointStateConstPtr& state);
+
+    void jointCmdCallback(const sensor_msgs::JointStateConstPtr& cmd);
+
+    void posCmdCallback(const geometry_msgs::PointConstPtr& cmd);
+
+    void modeCallback(const std_msgs::UInt8ConstPtr& cmd);
   };
 };

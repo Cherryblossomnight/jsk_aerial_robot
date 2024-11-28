@@ -57,11 +57,24 @@ void UnderActuatedImpedanceController::initialize(ros::NodeHandle nh,
 
   rosParamInit();
 
+
+
   //publisher
   rpy_gain_pub_ = nh_.advertise<spinal::RollPitchYawTerms>("rpy/gain", 1);
   flight_cmd_pub_ = nh_.advertise<spinal::FourAxisCommand>("four_axes/command", 1);
   four_axis_gain_pub_ = nh_.advertise<aerial_robot_msgs::FourAxisGain>("debug/four_axes/gain", 1);
   p_matrix_pseudo_inverse_inertia_pub_ = nh_.advertise<spinal::PMatrixPseudoInverseWithInertia>("p_matrix_pseudo_inverse_inertia", 1);
+  joint_state_sub_ = nh_.subscribe("joint_states", 1, &UnderActuatedImpedanceController::jointStateCallback, this);
+  joint_cmd_sub_ = nh_.subscribe("joint_cmds", 1, &UnderActuatedImpedanceController::jointCmdCallback, this);
+  pos_cmd_sub_ = nh_.subscribe("pos_cmds", 1, &UnderActuatedImpedanceController::posCmdCallback, this);
+  mode_sub_ = nh_.subscribe("imp_mode", 1, &UnderActuatedImpedanceController::modeCallback, this);
+
+  target_thrust_z_term_ = Eigen::VectorXd::Zero(motor_num_);
+  target_thrust_yaw_term_ = Eigen::VectorXd::Zero(motor_num_);
+
+  mode_.data = 0;
+
+
 
   //dynamic reconfigure server
   ros::NodeHandle control_nh(nh_, "controller");
@@ -86,10 +99,14 @@ void UnderActuatedImpedanceController::initialize(ros::NodeHandle nh,
   pid_msg_.yaw.i_term.resize(motor_num_);
   pid_msg_.yaw.d_term.resize(motor_num_);
 
+
+
   if (!robot_model_->isModelFixed()) realtime_update_ = true;
   if (realtime_update_) {
     gain_generator_thread_ = std::thread(boost::bind(&UnderActuatedImpedanceController::gainGeneratorFunc, this));
   }
+
+
 }
 
 UnderActuatedImpedanceController::~UnderActuatedImpedanceController()
@@ -172,96 +189,11 @@ void UnderActuatedImpedanceController::controlCore()
   target_pitch_ = target_acc_dash.x() / aerial_robot_estimation::G;
   target_roll_ = -target_acc_dash.y() / aerial_robot_estimation::G;
 
-  Eigen::VectorXd target_thrust_z_term = Eigen::VectorXd::Zero(motor_num_);
-  Eigen::VectorXd target_thrust_yaw_term = Eigen::VectorXd::Zero(motor_num_);
 
-  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(6, 6);
-  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(6, 6);
-  Eigen::MatrixXd Kp = Eigen::MatrixXd::Zero(6, 6);
-  Eigen::MatrixXd Kd = Eigen::MatrixXd::Zero(6, 6);
-  Eigen::MatrixXd J = Eigen::MatrixXd::Identity(6, 6);
-  Eigen::VectorXd x =  Eigen::VectorXd::Zero(6); 
-  Eigen::VectorXd x_dot =  Eigen::VectorXd::Zero(6); 
-  Eigen::VectorXd x_d_dot =  Eigen::VectorXd::Zero(6); 
-  Eigen::VectorXd x_d_ddot =  Eigen::VectorXd::Zero(6); 
-  Eigen::VectorXd u = Eigen::VectorXd::Zero(6); 
-  Eigen::VectorXd g = Eigen::VectorXd::Zero(4);  
-
-
-  double uav_mass = robot_model_->getMass();
-  Eigen::Matrix3d inertia = robot_model_->getInertia<Eigen::Matrix3d>();
-
-  g *= uav_mass * aerial_robot_estimation::G / 4;
-
-  // Cartesian Impedance Control of a UAV with a Robotic Arm, Equation (14)
-  B.block(0, 0, 3, 3) = uav_mass * Eigen::Matrix3d::Identity(3, 3);
-  B.block(3, 3, 3, 3) = inertia;
-  
-
-  // Parameters for impedance control
-  // Setting Kd as uav_mass + (-Cx + 2 * sqrt(Bx * Kp) place the system at critical damping
-  // If you set Kd so small(at underdamped), you can see the UAV jumping like inertia-spring system
-  // Here Bx = uav_mass and Cx = -Bx
-  // See Exploiting Redundancy in Cartesian Impedance Control of UAVs  Equipped with a Robotic Arm, Equation (10)
-  Kp.block(0, 0, 3, 3) = 8 * Eigen::Matrix3d::Identity();
-  Kp.block(3, 3, 3, 3) = 0.05 * Eigen::Matrix3d::Identity();
-  Kd.block(0, 0, 3, 3) = (uav_mass + 2 * sqrt(uav_mass * 8)) * Eigen::Matrix3d::Identity();
-  //Kd.block(0, 0, 3, 3) = 0.2 * Eigen::Matrix3d::Identity();
-
-  //Kd.block(3, 3, 3, 3) = (uav_mass + 2 * sqrt(uav_mass * 1)) * Eigen::Matrix3d::Identity();
-
-
-  x(0) = pid_controllers_.at(X).getErrP();
-  x(1) = pid_controllers_.at(Y).getErrP();
-  x(2) = pid_controllers_.at(Z).getErrP();
-  x(3) = pid_controllers_.at(ROLL).getErrP();
-  x(4) = pid_controllers_.at(PITCH).getErrP();
-  x(5) = pid_controllers_.at(YAW).getErrP();
-  x_dot(0) = pid_controllers_.at(X).getErrD();
-  x_dot(1) = pid_controllers_.at(Y).getErrD();
-  x_dot(2) = pid_controllers_.at(Z).getErrD();
-  x_dot(3) = pid_controllers_.at(ROLL).getErrD();
-  x_dot(4) = pid_controllers_.at(PITCH).getErrD();
-  x_dot(5) = pid_controllers_.at(YAW).getErrD();
-  tf::Vector3  target_vel_ = navigator_->getTargetVel();
-  tf::Vector3  target_acc_ = navigator_->getTargetAcc();
-  tf::Vector3  target_omega_ = navigator_->getTargetOmega();
-  tf::Vector3  target_ang_acc_ = navigator_->getTargetAngAcc();
-  x_d_dot(0) = target_vel_.x();
-  x_d_dot(1) = target_vel_.y();
-  x_d_dot(2) = target_vel_.z();
-  x_d_dot(3) = target_omega_.x();
-  x_d_dot(4) = target_omega_.y();
-  x_d_dot(5) = target_omega_.z();
-  x_d_ddot(0) = target_acc_.x();
-  x_d_ddot(1) = target_acc_.y();
-  x_d_ddot(2) = target_acc_.z();
-  x_d_ddot(3) = target_ang_acc_.x();
-  x_d_ddot(4) = target_ang_acc_.y();
-  x_d_ddot(5) = target_ang_acc_.z();
-
-  std::cout<< x << std::endl;
-  std::cout<< x_dot << std::endl;
-  std::cout<<x_d_dot << std::endl;
-  std::cout<< x_d_ddot<< std::endl;
-
-  // Suppose C = 0, then Cx = -Bx,  see Exploiting Redundancy in Cartesian Impedance Control of UAVs Equipped with a Robotic Arm, Equation (9)
-  Eigen::MatrixXd Bx = J.inverse().transpose() * B * J.inverse();
-  Eigen::MatrixXd Cx = J.inverse().transpose() * (C - B * J.inverse() * Eigen::MatrixXd::Identity(6, 6)) * J.inverse();
-
-
-  // Exploiting Redundancy in Cartesian Impedance Control of UAVs Equipped with a Robotic Arm, Equation (9)
-  u = J.transpose() * (Bx * x_d_ddot + Cx * x_d_dot + Kd * x_dot + Kp * x);
-  // Gravity compensation
-  u(2) += uav_mass * aerial_robot_estimation::G;
-
-  Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
-  Eigen::MatrixXd P_inv_ = aerial_robot_model::pseudoinverse(P);
 
   
 
-  target_thrust_z_term = P_inv_.col(2) * u(2); 
-  target_thrust_yaw_term =  P_inv_.col(5) * u(5); 
+
 
   // feed-forward term for z
   Eigen::MatrixXd q_mat_inv = getQInv();
@@ -269,36 +201,36 @@ void UnderActuatedImpedanceController::controlCore()
   double ff_ang_yaw = navigator_->getTargetAngAcc().z();
   Eigen::VectorXd ff_acc_z_term = q_mat_inv.col(0) * ff_acc_z;
   Eigen::VectorXd ff_ang_yaw_term = q_mat_inv.col(3) * ff_ang_yaw;
-  target_thrust_z_term += ff_acc_z_term;
-  target_thrust_yaw_term += ff_ang_yaw_term;
+  target_thrust_z_term_ += ff_acc_z_term;
+  target_thrust_yaw_term_ += ff_ang_yaw_term;
 
 
   // constraint z and yaw (also  I term)
   int index_z, index_yaw;
-  double max_z_term = target_thrust_z_term.cwiseAbs().maxCoeff(&index_z);
-  double max_yaw_term = target_thrust_yaw_term.cwiseAbs().maxCoeff(&index_yaw);
+  double max_z_term = target_thrust_z_term_.cwiseAbs().maxCoeff(&index_z);
+  double max_yaw_term = target_thrust_yaw_term_.cwiseAbs().maxCoeff(&index_yaw);
   double z_residual = max_z_term - pid_controllers_.at(Z).getLimitSum();
   double yaw_residual = max_yaw_term - pid_controllers_.at(YAW).getLimitSum();
   if(z_residual > 0)
     {
       pid_controllers_.at(Z).setErrI(pid_controllers_.at(Z).getPrevErrI());
-      target_thrust_z_term *= (1 - z_residual / max_z_term);
+      target_thrust_z_term_ *= (1 - z_residual / max_z_term);
     }
   if(yaw_residual > 0)
     {
       pid_controllers_.at(YAW).setErrI(pid_controllers_.at(YAW).getPrevErrI());
-      target_thrust_yaw_term *= (1 - yaw_residual / max_yaw_term);
+      target_thrust_yaw_term_ *= (1 - yaw_residual / max_yaw_term);
     }
 
   // special process for yaw since the bandwidth between PC and spinal
   double max_yaw_scale = 0; // for reconstruct yaw control term in spinal
   for(int i = 0; i < motor_num_; i++)
     {
-      target_base_thrust_.at(i) = target_thrust_z_term(i);
-      pid_msg_.z.total.at(i) =  target_thrust_z_term(i);
-      pid_msg_.yaw.total.at(i) =  target_thrust_yaw_term(i);
+      target_base_thrust_.at(i) = target_thrust_z_term_(i);
+      pid_msg_.z.total.at(i) =  target_thrust_z_term_(i);
+      pid_msg_.yaw.total.at(i) =  target_thrust_yaw_term_(i);
 
-      // TODO There is not max_gain_thresh to limit yaw_term' value
+      // TODO There is not max_gain_thresh to limit yaw_term's value
 
       // if(abs(target_thrust_yaw_term(i)) > max_yaw_scale)
       //   {
@@ -306,13 +238,18 @@ void UnderActuatedImpedanceController::controlCore()
      
         // }
     }
-    candidate_yaw_term_ = target_thrust_yaw_term(0);
+    candidate_yaw_term_ = target_thrust_yaw_term_(0);
 
-    std::cout << target_thrust_yaw_term << std::endl;
-    std::cout << candidate_yaw_term_ << std::endl;
-    std::cout << "---------------------------------------" << std::endl;
+    // std::cout << target_thrust_yaw_term << std::endl;
+    // std::cout << candidate_yaw_term_ << std::endl;
+    // std::cout << "---------------------------------------" << std::endl;
 
 }
+
+// Eigen::MatrixXd UnderActuatedImpedanceController::calcC(double dt)
+// {
+
+// }
 
 Eigen::MatrixXd UnderActuatedImpedanceController::getQInv()
 {
@@ -332,56 +269,7 @@ Eigen::MatrixXd UnderActuatedImpedanceController::getQInv()
   return q_mat_inv;
 }
 
-void UnderActuatedImpedanceController::allocateThrustTerm(Eigen::VectorXd &target_thrust_z_term)
-{
-  
 
-}
-
-
-void UnderActuatedImpedanceController::allocateYawTerm()
-{
-  Eigen::VectorXd target_thrust_yaw_term = Eigen::VectorXd::Zero(motor_num_);
-  for(int i = 0; i < motor_num_; i++)
-    {
-      double p_term = yaw_gains_.at(i)[0] * pid_controllers_.at(YAW).getErrP();
-      double i_term = yaw_gains_.at(i)[1] * pid_controllers_.at(YAW).getErrI();
-      double d_term = yaw_gains_.at(i)[2] * pid_controllers_.at(YAW).getErrD();
-      target_thrust_yaw_term(i) = p_term + i_term + d_term;
-      pid_msg_.yaw.p_term.at(i) = p_term;
-      pid_msg_.yaw.i_term.at(i) = i_term;
-      pid_msg_.yaw.d_term.at(i) = d_term;
-    }
-
-  // feed-forward term for yaw
-  Eigen::MatrixXd q_mat_inv = getQInv();
-  double ff_ang_yaw = navigator_->getTargetAngAcc().z();
-  Eigen::VectorXd ff_term = q_mat_inv.col(3) * ff_ang_yaw;
-  target_thrust_yaw_term += ff_term;
-
-  // constraint yaw (also  I term)
-  int index;
-  double max_term = target_thrust_yaw_term.cwiseAbs().maxCoeff(&index);
-  double residual = max_term - pid_controllers_.at(YAW).getLimitSum();
-  if(residual > 0)
-    {
-      pid_controllers_.at(YAW).setErrI(pid_controllers_.at(YAW).getPrevErrI());
-      target_thrust_yaw_term *= (1 - residual / max_term);
-    }
-
-  // special process for yaw since the bandwidth between PC and spinal
-  double max_yaw_scale = 0; // for reconstruct yaw control term in spinal
-  for(int i = 0; i < motor_num_; i++)
-    {
-      pid_msg_.yaw.total.at(i) =  target_thrust_yaw_term(i);
-
-      if(yaw_gains_[i][2] > max_yaw_scale)
-        {
-          max_yaw_scale = yaw_gains_[i][2];
-          candidate_yaw_term_ = target_thrust_yaw_term(i);
-        }
-    }
-}
 
 bool UnderActuatedImpedanceController::optimalGain()
 {
@@ -689,6 +577,42 @@ void UnderActuatedImpedanceController::sendRotationalInertiaComp()
 
   p_matrix_pseudo_inverse_inertia_pub_.publish(p_pseudo_inverse_with_inertia_msg);
 }
+
+void UnderActuatedImpedanceController::jointStateCallback(const sensor_msgs::JointStateConstPtr& state)
+{
+  for (int i = 0; i < state->position.size(); i++)
+  {
+    joint_pos_[i] = state->position[i];
+    joint_vel_[i] = state->velocity[i];
+  }
+}
+
+void UnderActuatedImpedanceController::jointCmdCallback(const sensor_msgs::JointStateConstPtr& cmd)
+{
+  for (int i = 0; i < cmd->position.size(); i++)
+  {
+    target_joint_pos_[i] = cmd->position[i];
+    target_joint_vel_[i] = cmd->velocity[i];
+    target_joint_acc_[i] = cmd->effort[i];
+  }
+}
+void UnderActuatedImpedanceController::posCmdCallback(const geometry_msgs::PointConstPtr& cmd)
+{
+  pos_cmd_ = *cmd;
+}
+
+void UnderActuatedImpedanceController::modeCallback(const std_msgs::UInt8ConstPtr& mode)
+{
+  if (mode_.data != mode->data)
+  {
+    if (mode->data == 1)
+      ROS_INFO_STREAM("Position Control Mode");
+    else if (mode->data == 0)
+      ROS_INFO_STREAM("Joint Angle Mode");
+  }
+  mode_ = *mode;
+}
+
 
 
 

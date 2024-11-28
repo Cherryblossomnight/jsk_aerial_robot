@@ -49,6 +49,7 @@ namespace aerial_robot_model {
   {
     joint_state_ = *state;
     robot_model_->updateRobotModel(*state);
+    robot_model_->updateJacobians();
 
     geometry_msgs::TransformStamped tf = robot_model_->getCog<geometry_msgs::TransformStamped>();
     tf.header = state->header;

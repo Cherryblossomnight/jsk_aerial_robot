@@ -1,4 +1,4 @@
-aerial_robot_control_name: aerial_robot_control/under_actuated_impedance_controller
+aerial_robot_control_name: aerial_robot_control/quad_impedance_controller
 
 controller:
   xy:
