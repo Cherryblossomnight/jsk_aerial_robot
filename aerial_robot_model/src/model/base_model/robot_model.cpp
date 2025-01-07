@@ -499,7 +499,6 @@ namespace aerial_robot_model {
   {
     calcWrenchMatrixOnRoot(); // update Q matrix
     Eigen::VectorXd wrench_g = calcGravityWrenchOnRoot();
-    std::cout<<"g:"<<wrench_g <<std::endl;
     static_thrust_ = aerial_robot_model::pseudoinverse(q_mat_) * (-wrench_g);
   }
 

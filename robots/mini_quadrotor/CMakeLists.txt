@@ -53,6 +53,7 @@ target_link_libraries(quad_robot_model ${catkin_LIBRARIES})
 add_library(quad_controller_pluginlib
   src/quad_impedance_controller.cpp)
 target_link_libraries(quad_controller_pluginlib quad_robot_model ${catkin_LIBRARIES} ${EIGEN3_LIBRARIES})
+
 add_dependencies(quad_controller_pluginlib aerial_robot_msgs_generate_messages_cpp spinal_generate_messages_cpp)
 
 install(DIRECTORY include/${PROJECT_NAME}/ test/${PROJECT_NAME}/

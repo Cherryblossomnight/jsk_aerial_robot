@@ -1,4 +1,5 @@
 <library path="lib/libquad_controller_pluginlib">
+
   <class name="aerial_robot_control/quad_impedance_controller" type="aerial_robot_control::QuadImpedanceController" base_class_type="aerial_robot_control::ControlBase">
     <description>Impedance based controller for under-actuated mini_quadrotor</description>
   </class>

@@ -19,9 +19,9 @@ void QuadImpedanceController::initialize(ros::NodeHandle nh,
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller1/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller2/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller3/simulation/command", 1));
-  // target_joint_pos_[0] = 0.0;
-  // target_joint_pos_[1] = 0.0;
-  // target_joint_pos_[2] = 0.0;
+  target_joint_pos_[0] = 0.0;
+  target_joint_pos_[1] = 0.0;
+  target_joint_pos_[2] = 0.0;
   pos_cmd_.x = 0.0;
   pos_cmd_.y = 0.0;
   pos_cmd_.z = -0.3;
@@ -272,8 +272,8 @@ void QuadImpedanceController::controlCore()
 
 
 
-  std::cout<<"Pe"<<Pe<<std::endl;
-  std::cout<<"-------------------------"<<std::endl;
+  // std::cout<<"Pe"<<Pe<<std::endl;
+  // std::cout<<"-------------------------"<<std::endl;
 
 
 
@@ -296,7 +296,7 @@ void QuadImpedanceController::controlCore()
   joint_cmd_pubs_[1].publish(j2_term);
   joint_cmd_pubs_[2].publish(j3_term);
  
-  std::cout<<"x_: "<< x<<std::endl;
+  // std::cout<<"x_: "<< x<<std::endl;
   // std::cout<<"x_dot_: "<< x_dot_<<std::endl;
   // std::cout<<"x_d_dot_: "<< x_d_dot_<<std::endl;
   // std::cout<<"x_d_ddot_: "<< x_d_ddot_<<std::endl;
@@ -307,7 +307,7 @@ void QuadImpedanceController::controlCore()
   // std::cout<<"j: "<<  J_<<std::endl;
   // std::cout<<"j: "<<  Pre_J_<<std::endl;
   // std::cout<<"Jdot: "<<  (J_ - Pre_J_) / (time-time_).toSec()<<std::endl;
-  std::cout<<"u: "<< u<<std::endl;
+  // std::cout<<"u: "<< u<<std::endl;
 
   Pre_J_ = J;
   Pre_Pe_ = Pe;
