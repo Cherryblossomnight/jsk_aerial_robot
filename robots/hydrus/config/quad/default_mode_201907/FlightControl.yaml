@@ -1,4 +1,4 @@
-aerial_robot_control_name: aerial_robot_control/hydrus_tilted_lqi_controller
+aerial_robot_control_name: aerial_robot_control/hydrus_impedance_controller
 
 controller:
   xy:
@@ -28,7 +28,7 @@ controller:
     limit_i: 4.0
     limit_d: 4.0
     limit_err_p: 0.4
-    need_d_control: false
+    need_d_control: true
 
   # LQI gain generator
   lqi:

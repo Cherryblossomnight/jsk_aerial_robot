@@ -2,6 +2,9 @@
   <class name="aerial_robot_control/hydrus_lqi_controller" type="aerial_robot_control::HydrusLQIController" base_class_type="aerial_robot_control::ControlBase">
     <description>LQI based controller for under-actuated hydrus</description>
   </class>
+  <class name="aerial_robot_control/hydrus_impedance_controller" type="aerial_robot_control::HydrusImpedanceController" base_class_type="aerial_robot_control::ControlBase">
+    <description>Impedance based controller for under-actuated hydrus</description>
+  </class>
   <class name="aerial_robot_control/hydrus_tilted_lqi_controller" type="aerial_robot_control::HydrusTiltedLQIController" base_class_type="aerial_robot_control::ControlBase">
     <description>LQI based controller for under-actuated tilted hydrus</description>
   </class>

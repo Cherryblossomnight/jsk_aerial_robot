@@ -12,6 +12,10 @@
     <description>controller for under actuated model (e.g., quad) with LQI controller </description>
   </class>
 
+  <class name="aerial_robot_control/under_actuated_impedance_controller" type="aerial_robot_control::UnderActuatedImpedanceController" base_class_type="aerial_robot_control::ControlBase">
+    <description>controller for under actuated model (e.g., quad) with Impedance controller </description>
+  </class>
+
   <class name="aerial_robot_control/under_actuated_tilted_lqi_controller" type="aerial_robot_control::UnderActuatedTiltedLQIController" base_class_type="aerial_robot_control::ControlBase">
     <description>controller for under actuated model (e.g., quad) with LQI Tilted controller </description>
   </class>

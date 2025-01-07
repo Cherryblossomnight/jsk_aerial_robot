@@ -47,6 +47,9 @@
     <rosparam file="$(arg config_dir)/StateEstimation.yaml" command="load" />
     <rosparam file="$(arg config_dir)/Simulation.yaml" command="load" if="$(eval arg('simulation') and not arg('real_machine'))"/>
 
+    ###########  Servo Config  ###########
+    <rosparam file="$(arg config_dir)/Servo.yaml" command="load" />
+
     ###########  Navigation  ###########
     <rosparam file="$(arg config_dir)/NavigationConfig.yaml" command="load" />
   </group>
@@ -77,6 +80,12 @@
     <arg name="simulation" value="$(arg simulation)" />
     <arg name="robot_ns" value="$(arg robot_ns)" />
   </include >
+
+  ###########  Servo Bridge  ###########
+  <node pkg="aerial_robot_model" type="servo_bridge_node" name="servo_bridge" ns="$(arg robot_ns)" output="screen" >
+    <param name="use_mujoco" value="true" if="$(arg mujoco)"/>
+  </node>
+
 
   ########## Simulation in Gazebo #########
   <include file="$(find aerial_robot_simulation)/launch/gazebo.launch" if = "$(eval arg('simulation') and not arg('real_machine') and not arg('mujoco'))" >

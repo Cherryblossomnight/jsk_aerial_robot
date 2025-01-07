@@ -295,6 +295,25 @@
         <axis xyz="0 0 1"/>
       </joint>
     </xacro:if>
+    <!--set the end_effector frame-->
+    <xacro:if value="${self == child}">
+      <link name="end_effector">
+        <inertial>
+          <origin xyz="0 0 0" rpy="0 0 0"/>
+          <mass value="0.00001"/>
+          <inertia
+              ixx="0.000001" ixy="0.0" ixz="0.0"
+              iyy="0.000001" iyz="0.0"
+              izz="0.000002"/>
+        </inertial>
+      </link>
+      <joint name="eff_joint" type="fixed">
+        <child link="end_effector"/>
+        <parent link="link${self}"/>
+        <origin rpy="0 0 0" xyz="${link_length} 0 0"/>
+      </joint>
+    </xacro:if>
+
 
     <!-- hardware interface -->
     <xacro:unless value="${self == child}">
