@@ -65,14 +65,21 @@ void UnderActuatedImpedanceController::initialize(ros::NodeHandle nh,
   four_axis_gain_pub_ = nh_.advertise<aerial_robot_msgs::FourAxisGain>("debug/four_axes/gain", 1);
   p_matrix_pseudo_inverse_inertia_pub_ = nh_.advertise<spinal::PMatrixPseudoInverseWithInertia>("p_matrix_pseudo_inverse_inertia", 1);
   joint_state_sub_ = nh_.subscribe("joint_states", 1, &UnderActuatedImpedanceController::jointStateCallback, this);
-  joint_cmd_sub_ = nh_.subscribe("joint_cmds", 1, &UnderActuatedImpedanceController::jointCmdCallback, this);
+  joint_cmd_sub_ = nh_.subscribe("joints_ctrl", 1, &UnderActuatedImpedanceController::jointCmdCallback, this);
   pos_cmd_sub_ = nh_.subscribe("pos_cmds", 1, &UnderActuatedImpedanceController::posCmdCallback, this);
   mode_sub_ = nh_.subscribe("imp_mode", 1, &UnderActuatedImpedanceController::modeCallback, this);
 
   target_thrust_z_term_ = Eigen::VectorXd::Zero(motor_num_);
   target_thrust_yaw_term_ = Eigen::VectorXd::Zero(motor_num_);
 
+  // joint_pos_ = Eigen::VectorXd::Zero(6);
+  // joint_vel_ = Eigen::VectorXd::Zero(6); 
+  // // target_joint_pos_ = Eigen::VectorXd::Zero(6);
+  // target_joint_vel_ = Eigen::VectorXd::Zero(6);
+  // target_joint_acc_ = Eigen::VectorXd::Zero(6);
+
   mode_.data = 0;
+
 
 
 
@@ -195,7 +202,7 @@ void UnderActuatedImpedanceController::controlCore()
 
 
 
-  // feed-forward term for z
+  //feed-forward term for z
   Eigen::MatrixXd q_mat_inv = getQInv();
   double ff_acc_z = navigator_->getTargetAcc().z();
   double ff_ang_yaw = navigator_->getTargetAngAcc().z();
@@ -224,11 +231,14 @@ void UnderActuatedImpedanceController::controlCore()
 
   // special process for yaw since the bandwidth between PC and spinal
   double max_yaw_scale = 0; // for reconstruct yaw control term in spinal
+  //std::cout << "---------------------------------------" << std::endl;
   for(int i = 0; i < motor_num_; i++)
+ 
     {
+      
       target_base_thrust_.at(i) = target_thrust_z_term_(i);
       pid_msg_.z.total.at(i) =  target_thrust_z_term_(i);
-      pid_msg_.yaw.total.at(i) =  target_thrust_yaw_term_(i);
+      // pid_msg_.yaw.total.at(i) =  target_thrust_yaw_term_(i);
 
       // TODO There is not max_gain_thresh to limit yaw_term's value
 
@@ -242,7 +252,7 @@ void UnderActuatedImpedanceController::controlCore()
 
     // std::cout << target_thrust_yaw_term << std::endl;
     // std::cout << candidate_yaw_term_ << std::endl;
-    // std::cout << "---------------------------------------" << std::endl;
+    //std::cout << "---------------------------------------" << std::endl;
 
 }
 
@@ -580,6 +590,8 @@ void UnderActuatedImpedanceController::sendRotationalInertiaComp()
 
 void UnderActuatedImpedanceController::jointStateCallback(const sensor_msgs::JointStateConstPtr& state)
 {
+  //std::cout<<*state<<std::endl;
+
   for (int i = 0; i < state->position.size(); i++)
   {
     joint_pos_[i] = state->position[i];
@@ -592,9 +604,10 @@ void UnderActuatedImpedanceController::jointCmdCallback(const sensor_msgs::Joint
   for (int i = 0; i < cmd->position.size(); i++)
   {
     target_joint_pos_[i] = cmd->position[i];
-    target_joint_vel_[i] = cmd->velocity[i];
-    target_joint_acc_[i] = cmd->effort[i];
+    //target_joint_vel_[i] = cmd->velocity[i];
+    //target_joint_acc_[i] = cmd->effort[i];
   }
+  // std::cout << "tar"<<target_joint_pos_<<std::endl;
 }
 void UnderActuatedImpedanceController::posCmdCallback(const geometry_msgs::PointConstPtr& cmd)
 {

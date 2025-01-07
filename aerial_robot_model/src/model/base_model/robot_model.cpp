@@ -499,6 +499,7 @@ namespace aerial_robot_model {
   {
     calcWrenchMatrixOnRoot(); // update Q matrix
     Eigen::VectorXd wrench_g = calcGravityWrenchOnRoot();
+    std::cout<<"g:"<<wrench_g <<std::endl;
     static_thrust_ = aerial_robot_model::pseudoinverse(q_mat_) * (-wrench_g);
   }
 
@@ -662,18 +663,18 @@ namespace aerial_robot_model {
     return joint_positions;
   }
 
+  Eigen::MatrixXd RobotModel::getJacobian(const KDL::JntArray& joint_positions, std::string segment_name, KDL::Vector offset)
+  {
+    Eigen::MatrixXd jac_all = Eigen::MatrixXd::Identity(6, 6 + getJointNum());
+    return jac_all;
+  }
+
   void RobotModel::updateJacobians()
   {
     
   }
 
-  Eigen::MatrixXd RobotModel::getPositionJacobian(std::string segment_name)
-  {
-    return Eigen::Matrix3d::Zero();
-
-  }
-
-  Eigen::MatrixXd RobotModel::getOrientationJacobian(std::string segment_name)
+  Eigen::MatrixXd RobotModel::getJacobians(std::string segment_name)
   {
     return Eigen::Matrix3d::Zero();
   }

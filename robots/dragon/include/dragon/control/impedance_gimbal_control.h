@@ -2,7 +2,7 @@
 /*********************************************************************
  * Software License Agreement (BSD License)
  *
- *  Copyright (c) 2016, JSK Lab
+ *  Copyright (c) 2017, JSK Lab
  *  All rights reserved.
  *
  *  Redistribution and use in source and binary forms, with or without
@@ -35,31 +35,76 @@
 
 #pragma once
 
-#include <aerial_robot_control/control/under_actuated_impedance_controller.h>
-#include <mini_quadrotor/quad_robot_model.h>
+#include <hydrus/hydrus_impedance_controller.h>
+#include <dragon/model/hydrus_like_robot_model.h>
+#include <dragon/dragon_navigation.h>
+#include <gazebo_msgs/ApplyBodyWrench.h>
+#include <gazebo_msgs/BodyRequest.h>
+#include <ros/ros.h>
+#include <std_msgs/Float32MultiArray.h>
+#include <spinal/RollPitchYawTerm.h>
 
 namespace aerial_robot_control
 {
-  class QuadImpedanceController: public UnderActuatedImpedanceController
+  class DragonImpedanceGimbalController : public HydrusImpedanceController
   {
-
   public:
-    QuadImpedanceController();
-    virtual ~QuadImpedanceController() = default;
+    DragonImpedanceGimbalController();
+    ~DragonImpedanceGimbalController(){}
 
     void initialize(ros::NodeHandle nh, ros::NodeHandle nhp,
                     boost::shared_ptr<aerial_robot_model::RobotModel> robot_model,
                     boost::shared_ptr<aerial_robot_estimation::StateEstimator> estimator,
                     boost::shared_ptr<aerial_robot_navigation::BaseNavigator> navigator,
-                    double ctrl_loop_rate);
+                    double ctrl_loop_rate) override;
 
-  protected:
+    bool update() override;
+    void reset() override
+    {
+      HydrusImpedanceController::reset();
+    }
+
+  private:
+    ros::Publisher gimbal_control_pub_;
+    ros::Publisher gimbal_target_force_pub_;
+    ros::Subscriber att_control_feedback_state_sub_;
+    ros::Subscriber extra_vectoring_force_sub_;
+
+    void gimbalControl();
+    void controlCore() override;
+    void rosParamInit() override;
+    void sendCmd() override;
+ 
+
+    void attControlFeedbackStateCallback(const spinal::RollPitchYawTermConstPtr& msg);
+    void extraVectoringForceCallback(const std_msgs::Float32MultiArrayConstPtr& msg);
+
+    boost::shared_ptr<Dragon::HydrusLikeRobotModel> dragon_robot_model_;
+    Eigen::MatrixXd P_xy_;
+
+    bool gimbal_vectoring_check_flag_;
+    bool add_lqi_result_;
+    std::vector<double> lqi_att_terms_;
+    std::vector<double> target_gimbal_angles_;
+
+    double gimbal_roll_pitch_control_rate_thresh_;
+    double gimbal_roll_pitch_control_p_det_thresh_;
+
+    Eigen::VectorXd target_joint_pos_ = Eigen::VectorXd::Zero(6);
+
+
+    /* external wrench */
+    ros::ServiceServer add_external_wrench_service_, clear_external_wrench_service_;
+    bool addExternalWrenchCallback(gazebo_msgs::ApplyBodyWrench::Request& req, gazebo_msgs::ApplyBodyWrench::Response& res);
+    bool clearExternalWrenchCallback(gazebo_msgs::BodyRequest::Request& req, gazebo_msgs::BodyRequest::Response& res);
+
+    Eigen::MatrixXd getPositionJacobian(std::string name);
+    Eigen::MatrixXd getOrientationJacobian(std::string name);
+
+    /* extra vectoring force (i.e., for grasping) */
+    Eigen::VectorXd extra_vectoring_force_;
 
     Eigen::MatrixXd Pre_J_ = Eigen::MatrixXd::Zero(9, 9);
-    //bool checkRobotModel() override;
-    virtual void controlCore() override;
-    Eigen::Matrix3d getPositionJacobian(std::string name);
-    Eigen::Matrix3d getOrientationJacobian(std::string name);
 
   };
 };

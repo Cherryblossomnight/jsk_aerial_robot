@@ -166,10 +166,10 @@ namespace aerial_robot_model {
 
     KDL::JntArray convertEigenToKDL(const Eigen::VectorXd& joint_vector);
 
+    virtual Eigen::MatrixXd getJacobian(const KDL::JntArray& joint_positions, std::string segment_name, KDL::Vector offset = KDL::Vector::Zero());
 
     virtual void updateJacobians();
-    virtual Eigen::MatrixXd getPositionJacobian(std::string segment_name);
-    virtual Eigen::MatrixXd getOrientationJacobian(std::string segment_name);
+    virtual Eigen::MatrixXd getJacobians(std::string segment_name);
     virtual Eigen::MatrixXd getPosition(std::string segment_name);
     virtual Eigen::MatrixXd getRotation(std::string segment_name);
 
@@ -245,6 +245,8 @@ namespace aerial_robot_model {
     void kinematicsInit();
     void stabilityInit();
     void staticsInit();
+
+    
 
 
 

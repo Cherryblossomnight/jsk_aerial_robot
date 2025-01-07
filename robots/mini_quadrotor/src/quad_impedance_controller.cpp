@@ -19,9 +19,9 @@ void QuadImpedanceController::initialize(ros::NodeHandle nh,
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller1/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller2/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller3/simulation/command", 1));
-  target_joint_pos_[0] = 0.0;
-  target_joint_pos_[1] = 0.0;
-  target_joint_pos_[2] = 0.0;
+  // target_joint_pos_[0] = 0.0;
+  // target_joint_pos_[1] = 0.0;
+  // target_joint_pos_[2] = 0.0;
   pos_cmd_.x = 0.0;
   pos_cmd_.y = 0.0;
   pos_cmd_.z = -0.3;
@@ -68,13 +68,13 @@ void QuadImpedanceController::controlCore()
   Eigen::VectorXd u = Eigen::VectorXd::Zero(9); 
  
 
-  Eigen::Matrix3d J1_p = robot_model_->getPositionJacobian("link1");
-  Eigen::Matrix3d J2_p = robot_model_->getPositionJacobian("link2");
-  Eigen::Matrix3d J3_p = robot_model_->getPositionJacobian("link3");
-  Eigen::Matrix3d Je_p = robot_model_->getPositionJacobian("end_effector");
-  Eigen::Matrix3d J1_o = robot_model_->getOrientationJacobian("link1");
-  Eigen::Matrix3d J2_o = robot_model_->getOrientationJacobian("link2");
-  Eigen::Matrix3d J3_o = robot_model_->getOrientationJacobian("link3");
+  Eigen::Matrix3d J1_p = getPositionJacobian("link1");
+  Eigen::Matrix3d J2_p = getPositionJacobian("link2");
+  Eigen::Matrix3d J3_p = getPositionJacobian("link3");
+  Eigen::Matrix3d Je_p = getPositionJacobian("end_effector");
+  Eigen::Matrix3d J1_o = getOrientationJacobian("link1");
+  Eigen::Matrix3d J2_o = getOrientationJacobian("link2");
+  Eigen::Matrix3d J3_o = getOrientationJacobian("link3");
 
   Eigen::Vector3d P1 = robot_model_->getPosition("link1");
   Eigen::Vector3d P2 = robot_model_->getPosition("link2");
@@ -296,7 +296,7 @@ void QuadImpedanceController::controlCore()
   joint_cmd_pubs_[1].publish(j2_term);
   joint_cmd_pubs_[2].publish(j3_term);
  
-  // std::cout<<"x_: "<< x_<<std::endl;
+  std::cout<<"x_: "<< x<<std::endl;
   // std::cout<<"x_dot_: "<< x_dot_<<std::endl;
   // std::cout<<"x_d_dot_: "<< x_d_dot_<<std::endl;
   // std::cout<<"x_d_ddot_: "<< x_d_ddot_<<std::endl;
@@ -307,7 +307,7 @@ void QuadImpedanceController::controlCore()
   // std::cout<<"j: "<<  J_<<std::endl;
   // std::cout<<"j: "<<  Pre_J_<<std::endl;
   // std::cout<<"Jdot: "<<  (J_ - Pre_J_) / (time-time_).toSec()<<std::endl;
-  //std::cout<<"u: "<< u<<std::endl;
+  std::cout<<"u: "<< u<<std::endl;
 
   Pre_J_ = J;
   Pre_Pe_ = Pe;
@@ -316,6 +316,21 @@ void QuadImpedanceController::controlCore()
   UnderActuatedImpedanceController::controlCore();
 }
 
+
+Eigen::Matrix3d QuadImpedanceController::getPositionJacobian(std::string name)
+{
+    Eigen::MatrixXd jacobian = robot_model_->getJacobians(name);
+    Eigen::Matrix3d p_jacobian = jacobian.block(0, 0, 3, 3);
+    return p_jacobian;
+
+}
+
+Eigen::Matrix3d QuadImpedanceController::getOrientationJacobian(std::string name)
+{
+    Eigen::MatrixXd jacobian = robot_model_->getJacobians(name);
+    Eigen::Matrix3d o_jacobian = jacobian.block(3, 0, 3, 3);
+    return o_jacobian;
+}
 
 
 /* plugin registration */

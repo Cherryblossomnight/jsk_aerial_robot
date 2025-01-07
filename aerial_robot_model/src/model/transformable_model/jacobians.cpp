@@ -17,18 +17,13 @@ Eigen::MatrixXd RobotModel::getJacobian(const KDL::JntArray& joint_positions, st
   // joint part
   Eigen::MatrixXd jac_joint = convertJacobian(jac.data);
   // return jac_joint; // only joint jacobian
-  //std::cout<<segment_name<<std::endl;
-  //   std::cout<<jac_joint<<std::endl;
+  // std::cout<<segment_name<<std::endl;
+  // std::cout<<jac_joint<<std::endl;
 
-  if (p_jacobians_map_.find(segment_name) != p_jacobians_map_.end()) 
-    p_jacobians_map_.at(segment_name) = jac_joint.block(0, 0, 3, 3);
+  if (jacobians_map_.find(segment_name) != jacobians_map_.end()) 
+    jacobians_map_.at(segment_name) = jac_joint;
   else
-    p_jacobians_map_.insert(std::make_pair(segment_name, jac_joint.block(0, 0, 3, 3)));
-
-  if (o_jacobians_map_.find(segment_name) != o_jacobians_map_.end()) 
-    o_jacobians_map_.at(segment_name) = jac_joint.block(3, 0, 3, 3);
-  else
-    o_jacobians_map_.insert(std::make_pair(segment_name, jac_joint.block(3, 0, 3, 3)));
+    jacobians_map_.insert(std::make_pair(segment_name, jac_joint));
 
   if (position_map_.find(segment_name) != position_map_.end()) 
     position_map_.at(segment_name) = kdlToEigen(seg_frames.at(segment_name).p);
@@ -57,13 +52,9 @@ Eigen::MatrixXd RobotModel::getJacobian(const KDL::JntArray& joint_positions, st
 }
 
 
-Eigen::MatrixXd RobotModel::getPositionJacobian(std::string segment_name)
+Eigen::MatrixXd RobotModel::getJacobians(std::string segment_name)
 {
-  return p_jacobians_map_.at(segment_name);
-}
-Eigen::MatrixXd RobotModel::getOrientationJacobian(std::string segment_name)
-{
-  return o_jacobians_map_.at(segment_name);
+  return jacobians_map_.at(segment_name);
 }
 Eigen::MatrixXd RobotModel::getPosition(std::string segment_name)
 {

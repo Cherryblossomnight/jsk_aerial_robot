@@ -54,11 +54,16 @@ namespace aerial_robot_control
                     double ctrl_loop_rate);
 
   protected:
-
+    
     Eigen::MatrixXd Pre_J_ = Eigen::MatrixXd::Zero(6, 6);
+
+    double rotation_p_, joints_p_, pos_p_, rotation_d_, joints_d_, pos_d_;
+
     bool checkRobotModel() override;
     virtual void controlCore() override;
-   
+    virtual void rosParamInit() override;
+    Eigen::Matrix3d getPositionJacobian(std::string name);
+    Eigen::Matrix3d getOrientationJacobian(std::string name);
 
   };
 };
