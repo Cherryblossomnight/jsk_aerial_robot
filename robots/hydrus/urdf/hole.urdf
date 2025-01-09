@@ -1,17 +1,14 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
-     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
-     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<?xml version="1.0"?>
 <robot
-  name="hole">
+    xmlns:xacro="http://www.ros.org/wiki/xacro" name="hole" >
   <link
-    name="base_link">
+    name="hole_link">
     <inertial>
       <origin
         xyz="-1.4542E-17 -0.040175 -2.0864E-18"
-        rpy="0 0 0" />
+        rpy="1.57 0 0" />
       <mass
-        value="1.7475" />
+        value="17.475" />
       <inertia
         ixx="0.0076021"
         ixy="-1.0683E-18"
@@ -23,10 +20,10 @@
     <visual>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="1.57 0 0" />
       <geometry>
         <mesh
-          filename="package://hole/meshes/base_link.STL" />
+          filename="package://hydrus/urdf/mesh/scene/hole_link.dae" />
       </geometry>
       <material
         name="">
@@ -37,11 +34,16 @@
     <collision>
       <origin
         xyz="0 0 0"
-        rpy="0 0 0" />
+        rpy="1.57 0 0" />
       <geometry>
         <mesh
-          filename="package://hole/meshes/base_link.STL" />
+          filename="package://hydrus/urdf/mesh/scene/hole_link.dae" />
       </geometry>
     </collision>
   </link>
+
+  <gazebo reference="hole_link">
+    <static>true</static>
+  </gazebo>
+
 </robot>
