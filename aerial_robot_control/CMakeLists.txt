@@ -60,6 +60,7 @@ add_library(flight_control_pluginlib
   src/control/fully_actuated_controller.cpp
   src/control/under_actuated_controller.cpp
   src/control/under_actuated_impedance_controller.cpp
+  src/control/under_actuated_tilted_impedance_controller.cpp
   src/control/under_actuated_lqi_controller.cpp
   src/control/under_actuated_tilted_lqi_controller.cpp)
 

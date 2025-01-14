@@ -58,7 +58,6 @@ void UnderActuatedImpedanceController::initialize(ros::NodeHandle nh,
   rosParamInit();
 
 
-
   //publisher
   rpy_gain_pub_ = nh_.advertise<spinal::RollPitchYawTerms>("rpy/gain", 1);
   flight_cmd_pub_ = nh_.advertise<spinal::FourAxisCommand>("four_axes/command", 1);
@@ -195,10 +194,6 @@ void UnderActuatedImpedanceController::controlCore()
 
   target_pitch_ = target_acc_dash.x() / aerial_robot_estimation::G;
   target_roll_ = -target_acc_dash.y() / aerial_robot_estimation::G;
-
-
-
-  
 
 
 
@@ -625,9 +620,6 @@ void UnderActuatedImpedanceController::modeCallback(const std_msgs::UInt8ConstPt
   }
   mode_ = *mode;
 }
-
-
-
 
 /* plugin registration */
 #include <pluginlib/class_list_macros.h>
