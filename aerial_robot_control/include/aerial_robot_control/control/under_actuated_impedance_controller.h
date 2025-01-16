@@ -88,9 +88,8 @@ namespace aerial_robot_control
 
     std::vector<Eigen::Vector3d> pitch_gains_, roll_gains_, yaw_gains_, z_gains_;
 
-    bool gyro_moment_compensation_;
-
     bool realtime_update_;
+    bool gyro_moment_compensation_;
     std::thread gain_generator_thread_;
 
     Eigen::VectorXd joint_pos_ = Eigen::VectorXd::Zero(6);

@@ -20,7 +20,8 @@
   <arg name="robot_ns" value="hydrus$(arg robot_id)" />
   <arg name="config_dir" default="$(find hydrus)/config/$(arg type)" />
   <arg name="mujoco" default="False" />
-
+<!-- tilt_20deg_201907 -->
+<!-- default_mode_201907 -->
   ###########  Parameters  ###########
   <group ns="$(arg robot_ns)">
 

@@ -46,6 +46,7 @@ bool HydrusTiltedImpedanceController::checkRobotModel()
 
 void HydrusTiltedImpedanceController::controlCore()
 {
+  std::cout<<"H"<<std::endl;
 
   Eigen::MatrixXd BE = Eigen::MatrixXd::Zero(6, 6);
   Eigen::MatrixXd Bpr = Eigen::MatrixXd::Zero(3, 6);
@@ -299,10 +300,10 @@ void HydrusTiltedImpedanceController::controlCore()
 //   // std::cout<<"Jdot: "<<  (J_ - Pre_J_) / (time-time_).toSec()<<std::endl;
 //   // std::cout<<"u: "<< u<<std::endl;
 
-//   Pre_J_ = J;
-//   Pre_Pe_ = Rc.inverse() * (Pe - Pc);
-//   Pre_Bpr_ = Bpr;
-//   time_ = time;
+  Pre_J_ = J;
+  Pre_Pe_ = Rc.inverse() * (Pe - Pc);
+  Pre_Bpr_ = Bpr;
+  time_ = time;
 
 
   UnderActuatedImpedanceController::controlCore();

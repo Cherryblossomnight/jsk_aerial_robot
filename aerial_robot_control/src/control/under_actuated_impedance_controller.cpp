@@ -130,14 +130,13 @@ void UnderActuatedImpedanceController::gainGeneratorFunc()
     {
       if(checkRobotModel())
         {
-          // std::cout<<"E"<<std::endl;
-          // if(optimalGain())
-          //   {
-          //     // clampGain();
-          //     // publishGain();
-          //   }
-          // else
-          //   ROS_ERROR_NAMED("LQI gain generator", "LQI gain generator: can not solve hamilton matrix");
+          if(optimalGain())
+            {
+              clampGain();
+              publishGain();
+            }
+          else
+            ROS_ERROR_NAMED("LQI gain generator", "LQI gain generator: can not solve hamilton matrix");
         }
       else
         {
@@ -278,8 +277,7 @@ bool UnderActuatedImpedanceController::optimalGain()
   // Sec. 3.2
   
 
-  std::cout<<"tttt"<<std::endl;
-
+  
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
   Eigen::MatrixXd P_dash = Eigen::MatrixXd::Zero(lqi_mode_, motor_num_);
   Eigen::MatrixXd inertia = robot_model_->getInertia<Eigen::Matrix3d>();
@@ -295,6 +293,8 @@ bool UnderActuatedImpedanceController::optimalGain()
       B.row(2 * i + 1) = P_dash.row(i);
       C(i, 2 * i) = 1;
     }
+  std::cout<<"CC"<<std::endl;
+  std::cout<<A<<std::endl;
   A.block(lqi_mode_ * 2, 0, lqi_mode_, lqi_mode_ * 3) = -C;
 
   ROS_DEBUG_STREAM_NAMED("LQI gain generator", "LQI gain generator: B: \n"  <<  B );
@@ -344,7 +344,7 @@ bool UnderActuatedImpedanceController::optimalGain()
       if(lqi_mode_ == 4) yaw_gains_.at(i) = Eigen::Vector3d(-K_(i,6), K_(i, lqi_mode_ * 2 + 3), -K_(i,7));
       else yaw_gains_.at(i).setZero();
     }
-  std::cout<<"CCCC"<<std::endl;
+
 
   return true;
 }
