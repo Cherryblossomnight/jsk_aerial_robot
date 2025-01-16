@@ -319,7 +319,7 @@ void AttitudeController::update(void)
                   {
                     roll_pitch_term_[i] = p_term + i_term + d_term; // [N]
                     control_term_msg_.motors[i].roll_p = p_term * 1000;
-                    control_term_msg_.motors[i].roll_i= i_term * 1000;
+                    control_term_msg_.motors[i].roll_i = i_term * 1000;
                     control_term_msg_.motors[i].roll_d = d_term * 1000;
                   }
                 if(axis == Y)

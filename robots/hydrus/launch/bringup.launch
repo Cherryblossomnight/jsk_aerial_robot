@@ -4,7 +4,7 @@
   <arg name="real_machine" default="True" />
   <arg name="simulation" default="False" />
   <arg name="type" default="quad" />
-  <arg name="onboards_model" default="default_mode_201907" />
+  <arg name="onboards_model" default="tilt_20deg_201907" />
   <arg name="estimate_mode"  default= "0" />
   <arg name="sim_estimate_mode"  default= "2" />
   <arg name="headless" default="True" />
@@ -102,7 +102,7 @@
 
   <group if="$(eval arg('simulation'))">
     <param name="hole/robot_description" command="$(find xacro)/xacro $(find hydrus)/urdf/hole.urdf" />
-    <node pkg="gazebo_ros" type="spawn_model" name="hole_spawn" args="-param hole/robot_description -urdf -x -2 -y 0 -z 1 -model hole" />
+    <node pkg="gazebo_ros" type="spawn_model" name="hole_spawn" args="-param hole/robot_description -urdf -x -2 -y 0 -z 0.8 -model hole" />
   </group>
 
   ########## Simulation in Mujoco #########

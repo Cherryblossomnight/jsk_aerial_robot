@@ -53,6 +53,7 @@ void UnderActuatedTiltedImpedanceController::initialize(ros::NodeHandle nh,
   pid_msg_.z.d_term.resize(1);
   z_limit_ = pid_controllers_.at(Z).getLimitSum();
   pid_controllers_.at(Z).setLimitSum(1e6); // do not clamp the sum of PID terms for z axis
+
 }
 
 void UnderActuatedTiltedImpedanceController::controlCore()
@@ -96,7 +97,25 @@ void UnderActuatedTiltedImpedanceController::controlCore()
       pid_msg_.z.total.at(i) =  target_thrust_z_term(i);
     }
 
-  //allocateYawTerm();
+  Eigen::MatrixXd q_mat_inv = getQInv();
+  double ff_ang_yaw = navigator_->getTargetAngAcc().z();
+  Eigen::VectorXd ff_ang_yaw_term = q_mat_inv.col(3) * ff_ang_yaw;
+  target_thrust_yaw_term_ += ff_ang_yaw_term;
+
+
+  // constraint yaw (also I term)
+  int index_yaw;
+  double max_yaw_term = target_thrust_yaw_term_.cwiseAbs().maxCoeff(&index_yaw);
+  double yaw_residual = max_yaw_term - pid_controllers_.at(YAW).getLimitSum();
+  if(yaw_residual > 0)
+    {
+      pid_controllers_.at(YAW).setErrI(pid_controllers_.at(YAW).getPrevErrI());
+      target_thrust_yaw_term_ *= (1 - yaw_residual / max_yaw_term);
+    }
+
+  // special process for yaw since the bandwidth between PC and spinal
+  candidate_yaw_term_ = target_thrust_yaw_term_(0);
+
 }
 
 bool UnderActuatedTiltedImpedanceController::optimalGain()

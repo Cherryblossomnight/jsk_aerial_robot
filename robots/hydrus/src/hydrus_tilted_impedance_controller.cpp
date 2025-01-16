@@ -1,21 +1,20 @@
-#include <hydrus/hydrus_impedance_controller.h>
+#include <hydrus/hydrus_tilted_impedance_controller.h>
 
 using namespace aerial_robot_control;
 
-HydrusImpedanceController::HydrusImpedanceController():
-  UnderActuatedImpedanceController()
+HydrusTiltedImpedanceController::HydrusTiltedImpedanceController():
+  UnderActuatedTiltedImpedanceController()
 {
 }
 
-
-void HydrusImpedanceController::initialize(ros::NodeHandle nh,
+void HydrusTiltedImpedanceController::initialize(ros::NodeHandle nh,
                                      ros::NodeHandle nhp,
                                      boost::shared_ptr<aerial_robot_model::RobotModel> robot_model,
                                      boost::shared_ptr<aerial_robot_estimation::StateEstimator> estimator,
                                      boost::shared_ptr<aerial_robot_navigation::BaseNavigator> navigator,
                                      double ctrl_loop_rate)
 {
-  UnderActuatedImpedanceController::initialize(nh, nhp, robot_model, estimator, navigator, ctrl_loop_rate);
+  UnderActuatedTiltedImpedanceController::initialize(nh, nhp, robot_model, estimator, navigator, ctrl_loop_rate);
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller1/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller2/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller3/simulation/command", 1));
@@ -27,34 +26,27 @@ void HydrusImpedanceController::initialize(ros::NodeHandle nh,
   pos_cmd_.z = 0.0;
 }
 
-bool HydrusImpedanceController::checkRobotModel()
+bool HydrusTiltedImpedanceController::checkRobotModel()
 {
-  boost::shared_ptr<HydrusRobotModel> hydrus_robot_model = boost::dynamic_pointer_cast<HydrusRobotModel>(robot_model_);
-  lqi_mode_ = hydrus_robot_model->getWrenchDof();
-
   if(!robot_model_->initialized())
     {
-      ROS_DEBUG_NAMED("LQI gain generator", "LQI gain generator: robot model is not initiliazed");
+      ROS_DEBUG_NAMED("Impedance gain generator", "Impedance gain generator: robot model is not initiliazed");
       return false;
     }
 
   if(!robot_model_->stabilityCheck(verbose_))
     {
-      ROS_ERROR_NAMED("LQI gain generator", "LQI gain generator: invalid pose, stability is invalid");
-      if(hydrus_robot_model->getWrenchDof() == 4 && hydrus_robot_model->getFeasibleControlRollPitchMin() > hydrus_robot_model->getFeasibleControlRollPitchMinThre())
-        {
-          ROS_WARN_NAMED("LQI gain generator", "LQI gain generator: change to three axis stable mode");
-          lqi_mode_ = 3;
-          return true;
-        }
+      ROS_ERROR_NAMED("Impedance gain generator", "Impedance gain generator: invalid pose, stability is invalid");
 
       return false;
     }
   return true;
+  
 }
 
-void HydrusImpedanceController::controlCore()
+void HydrusTiltedImpedanceController::controlCore()
 {
+
   Eigen::MatrixXd BE = Eigen::MatrixXd::Zero(6, 6);
   Eigen::MatrixXd Bpr = Eigen::MatrixXd::Zero(3, 6);
   Eigen::MatrixXd CE = Eigen::MatrixXd::Zero(6, 6);
@@ -291,33 +283,32 @@ void HydrusImpedanceController::controlCore()
   joint_cmd_pubs_[2].publish(j3_term);
   
  
-  // std::cout<<"target_thrust_yaw_term_: "<< target_thrust_yaw_term_<<std::endl;
-  // std::cout<<"sum: "<< target_thrust_yaw_term_(0) + target_thrust_yaw_term_(1) +target_thrust_yaw_term_(2) +target_thrust_yaw_term_(3)<<std::endl;
-  // std::cout<<"j1: "<< u(3)<<std::endl;
-  // std::cout<<"j2: "<< u(4)<<std::endl;
-  // std::cout<<"j3: "<< u(5)<<std::endl;
-  // std::cout<<"x: "<< x <<std::endl;
-  // std::cout<<"pe: "<< Rc.inverse() * (Pe - Pc)<<std::endl;
-  // std::cout<<"Bx: "<< Bx<<std::endl;
-  // std::cout<<"Cx: "<< Cx<<std::endl;
-  // std::cout<<"Kd_: "<< Kd_<<std::endl;
-  // std::cout<<"Kp_: "<< Kp_<<std::endl;
-  // std::cout<<"j: "<<  J_<<std::endl;
-  // std::cout<<"j: "<<  Pre_J_<<std::endl;
-  // std::cout<<"Jdot: "<<  (J_ - Pre_J_) / (time-time_).toSec()<<std::endl;
-  // std::cout<<"u: "<< u<<std::endl;
+//   // std::cout<<"target_thrust_yaw_term_: "<< target_thrust_yaw_term_<<std::endl;
+//   // std::cout<<"sum: "<< target_thrust_yaw_term_(0) + target_thrust_yaw_term_(1) +target_thrust_yaw_term_(2) +target_thrust_yaw_term_(3)<<std::endl;
+//   // std::cout<<"j1: "<< u(3)<<std::endl;
+//   // std::cout<<"j2: "<< u(4)<<std::endl;
+//   // std::cout<<"j3: "<< u(5)<<std::endl;
+//   // std::cout<<"x: "<< x <<std::endl;
+//   // std::cout<<"pe: "<< Rc.inverse() * (Pe - Pc)<<std::endl;
+//   // std::cout<<"Bx: "<< Bx<<std::endl;
+//   // std::cout<<"Cx: "<< Cx<<std::endl;
+//   // std::cout<<"Kd_: "<< Kd_<<std::endl;
+//   // std::cout<<"Kp_: "<< Kp_<<std::endl;
+//   // std::cout<<"j: "<<  J_<<std::endl;
+//   // std::cout<<"j: "<<  Pre_J_<<std::endl;
+//   // std::cout<<"Jdot: "<<  (J_ - Pre_J_) / (time-time_).toSec()<<std::endl;
+//   // std::cout<<"u: "<< u<<std::endl;
 
-  Pre_J_ = J;
-  Pre_Pe_ = Rc.inverse() * (Pe - Pc);
-  Pre_Bpr_ = Bpr;
-  time_ = time;
+//   Pre_J_ = J;
+//   Pre_Pe_ = Rc.inverse() * (Pe - Pc);
+//   Pre_Bpr_ = Bpr;
+//   time_ = time;
 
 
   UnderActuatedImpedanceController::controlCore();
 }
 
-
-void HydrusImpedanceController::rosParamInit()
+void HydrusTiltedImpedanceController::rosParamInit()
 {
   UnderActuatedImpedanceController::rosParamInit();
 
@@ -331,7 +322,8 @@ void HydrusImpedanceController::rosParamInit()
   getParam<double>(param_nh, "pos_d", pos_d_, 4.0);
 }
 
-Eigen::Matrix3d HydrusImpedanceController::getPositionJacobian(std::string name)
+
+Eigen::Matrix3d HydrusTiltedImpedanceController::getPositionJacobian(std::string name)
 {
     Eigen::MatrixXd jacobian = robot_model_->getJacobians(name);
     Eigen::Matrix3d p_jacobian = jacobian.block(0, 0, 3, 3);
@@ -339,7 +331,7 @@ Eigen::Matrix3d HydrusImpedanceController::getPositionJacobian(std::string name)
 
 }
 
-Eigen::Matrix3d HydrusImpedanceController::getOrientationJacobian(std::string name)
+Eigen::Matrix3d HydrusTiltedImpedanceController::getOrientationJacobian(std::string name)
 {
     Eigen::MatrixXd jacobian = robot_model_->getJacobians(name);
     Eigen::Matrix3d o_jacobian = jacobian.block(3, 0, 3, 3);
@@ -350,4 +342,4 @@ Eigen::Matrix3d HydrusImpedanceController::getOrientationJacobian(std::string na
 
 /* plugin registration */
 #include <pluginlib/class_list_macros.h>
-PLUGINLIB_EXPORT_CLASS(aerial_robot_control::HydrusImpedanceController, aerial_robot_control::ControlBase);
+PLUGINLIB_EXPORT_CLASS(aerial_robot_control::HydrusTiltedImpedanceController, aerial_robot_control::ControlBase);

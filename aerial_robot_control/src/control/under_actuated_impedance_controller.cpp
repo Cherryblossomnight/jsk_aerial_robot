@@ -61,7 +61,6 @@ void UnderActuatedImpedanceController::initialize(ros::NodeHandle nh,
   //publisher
   rpy_gain_pub_ = nh_.advertise<spinal::RollPitchYawTerms>("rpy/gain", 1);
   flight_cmd_pub_ = nh_.advertise<spinal::FourAxisCommand>("four_axes/command", 1);
-  four_axis_gain_pub_ = nh_.advertise<aerial_robot_msgs::FourAxisGain>("debug/four_axes/gain", 1);
   p_matrix_pseudo_inverse_inertia_pub_ = nh_.advertise<spinal::PMatrixPseudoInverseWithInertia>("p_matrix_pseudo_inverse_inertia", 1);
   joint_state_sub_ = nh_.subscribe("joint_states", 1, &UnderActuatedImpedanceController::jointStateCallback, this);
   joint_cmd_sub_ = nh_.subscribe("joints_ctrl", 1, &UnderActuatedImpedanceController::jointCmdCallback, this);
@@ -91,7 +90,6 @@ void UnderActuatedImpedanceController::initialize(ros::NodeHandle nh,
   //gains
   pitch_gains_.resize(motor_num_, Eigen::Vector3d(0,0,0));
   roll_gains_.resize(motor_num_, Eigen::Vector3d(0,0,0));
-  z_gains_.resize(motor_num_, Eigen::Vector3d(0,0,0));
   yaw_gains_.resize(motor_num_, Eigen::Vector3d(0,0,0));
 
   //message
@@ -132,13 +130,14 @@ void UnderActuatedImpedanceController::gainGeneratorFunc()
     {
       if(checkRobotModel())
         {
-          if(optimalGain())
-            {
-              clampGain();
-              publishGain();
-            }
-          else
-            ROS_ERROR_NAMED("LQI gain generator", "LQI gain generator: can not solve hamilton matrix");
+          // std::cout<<"E"<<std::endl;
+          // if(optimalGain())
+          //   {
+          //     // clampGain();
+          //     // publishGain();
+          //   }
+          // else
+          //   ROS_ERROR_NAMED("LQI gain generator", "LQI gain generator: can not solve hamilton matrix");
         }
       else
         {
@@ -251,10 +250,6 @@ void UnderActuatedImpedanceController::controlCore()
 
 }
 
-// Eigen::MatrixXd UnderActuatedImpedanceController::calcC(double dt)
-// {
-
-// }
 
 Eigen::MatrixXd UnderActuatedImpedanceController::getQInv()
 {
@@ -281,6 +276,9 @@ bool UnderActuatedImpedanceController::optimalGain()
   // referece:
   // M, Zhao, et.al, "Transformable multirotor with two-dimensional multilinks: modeling, control, and whole-body aerial manipulation"
   // Sec. 3.2
+  
+
+  std::cout<<"tttt"<<std::endl;
 
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
   Eigen::MatrixXd P_dash = Eigen::MatrixXd::Zero(lqi_mode_, motor_num_);
@@ -343,10 +341,10 @@ bool UnderActuatedImpedanceController::optimalGain()
     {
       roll_gains_.at(i) = Eigen::Vector3d(-K_(i,2),  K_(i, lqi_mode_ * 2 + 1), -K_(i,3));
       pitch_gains_.at(i) = Eigen::Vector3d(-K_(i,4), K_(i, lqi_mode_ * 2 + 2), -K_(i,5));
-      z_gains_.at(i) = Eigen::Vector3d(-K_(i,0), K_(i, lqi_mode_ * 2), -K_(i,1));
       if(lqi_mode_ == 4) yaw_gains_.at(i) = Eigen::Vector3d(-K_(i,6), K_(i, lqi_mode_ * 2 + 3), -K_(i,7));
       else yaw_gains_.at(i).setZero();
     }
+  std::cout<<"CCCC"<<std::endl;
 
   return true;
 }
@@ -451,28 +449,11 @@ void UnderActuatedImpedanceController::rosParamInit()
 
 void UnderActuatedImpedanceController::publishGain()
 {
-  aerial_robot_msgs::FourAxisGain four_axis_gain_msg;
   spinal::RollPitchYawTerms rpy_gain_msg; // to spinal
   rpy_gain_msg.motors.resize(motor_num_);
 
   for(int i = 0; i < motor_num_; ++i)
     {
-      four_axis_gain_msg.roll_p_gain.push_back(roll_gains_.at(i)[0]);
-      four_axis_gain_msg.roll_i_gain.push_back(roll_gains_.at(i)[1]);
-      four_axis_gain_msg.roll_d_gain.push_back(roll_gains_.at(i)[2]);
-
-      four_axis_gain_msg.pitch_p_gain.push_back(pitch_gains_.at(i)[0]);
-      four_axis_gain_msg.pitch_i_gain.push_back(pitch_gains_.at(i)[1]);
-      four_axis_gain_msg.pitch_d_gain.push_back(pitch_gains_.at(i)[2]);
-
-      four_axis_gain_msg.yaw_p_gain.push_back(yaw_gains_.at(i)[0]);
-      four_axis_gain_msg.yaw_i_gain.push_back(yaw_gains_.at(i)[1]);
-      four_axis_gain_msg.yaw_d_gain.push_back(yaw_gains_.at(i)[2]);
-
-      four_axis_gain_msg.z_p_gain.push_back(z_gains_.at(i)[0]);
-      four_axis_gain_msg.z_i_gain.push_back(z_gains_.at(i)[1]);
-      four_axis_gain_msg.z_d_gain.push_back(z_gains_.at(i)[2]);
-
       /* to flight controller via rosserial scaling by 1000 */
       rpy_gain_msg.motors[i].roll_p = roll_gains_.at(i)[0] * 1000;
       rpy_gain_msg.motors[i].roll_i = roll_gains_.at(i)[1] * 1000;
@@ -485,7 +466,6 @@ void UnderActuatedImpedanceController::publishGain()
       rpy_gain_msg.motors[i].yaw_d = yaw_gains_.at(i)[2] * 1000;
     }
   rpy_gain_pub_.publish(rpy_gain_msg);
-  four_axis_gain_pub_.publish(four_axis_gain_msg);
 }
 
 void UnderActuatedImpedanceController::cfgLQICallback(aerial_robot_control::LQIConfig &config, uint32_t level)

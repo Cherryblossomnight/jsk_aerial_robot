@@ -79,6 +79,9 @@ void UnderActuatedTiltedLQIController::controlCore()
   Eigen::VectorXd allocate_scales = f / g.norm();
   Eigen::VectorXd target_thrust_z_term = allocate_scales * target_acc_w.length();
 
+  std::cout<<"allocate_scales"<<allocate_scales<<std::endl;
+   std::cout<<"target_acc_w.length()"<<target_acc_w.x()<<" "<<target_acc_w.y()<<" "<<target_acc_w.z()<<" "<<std::endl;
+
   // constraint z (also  I term)
   int index;
   double max_term = target_thrust_z_term.cwiseAbs().maxCoeff(&index);
