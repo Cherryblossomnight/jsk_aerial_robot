@@ -46,8 +46,6 @@ bool HydrusTiltedImpedanceController::checkRobotModel()
 
 void HydrusTiltedImpedanceController::controlCore()
 {
-  std::cout<<"H"<<std::endl;
-
   Eigen::MatrixXd BE = Eigen::MatrixXd::Zero(6, 6);
   Eigen::MatrixXd Bpr = Eigen::MatrixXd::Zero(3, 6);
   Eigen::MatrixXd CE = Eigen::MatrixXd::Zero(6, 6);
@@ -122,8 +120,10 @@ void HydrusTiltedImpedanceController::controlCore()
   T(2, 2) = cos(rpy.x()) * cos(rpy.y());
 
   Eigen::Matrix3d Q = R.transpose() * T;
+  std::cout<<"R"<<R<<std::endl;
 
- 
+   std::cout<<"R"<<R1<<std::endl;
+     std::cout<<"R"<<R<<std::endl;
   if (mode_.data == 1) // position_control
     J.block(3, 3, 3, 3) = Rc.inverse() * (Je_p - (J1_p + J2_p + J3_p + J4_p) / 4);
 
@@ -267,7 +267,7 @@ void HydrusTiltedImpedanceController::controlCore()
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
   Eigen::MatrixXd P_inv_ = aerial_robot_model::pseudoinverse(P);
 
-
+  Eigen::VectorXd target_total_thrust = P_inv_.col(2) * uz + P_inv_.col(3) * u(0) + P_inv_.col(4) * u(1) + P_inv_.col(5) * u(2);
   target_thrust_z_term_ = P_inv_.col(2) * uz;
   //if (target_joint_pos_[0] > 1.56)
   target_thrust_yaw_term_ =  P_inv_.col(5) * u(2); 
@@ -286,11 +286,13 @@ void HydrusTiltedImpedanceController::controlCore()
  
 //   // std::cout<<"target_thrust_yaw_term_: "<< target_thrust_yaw_term_<<std::endl;
 //   // std::cout<<"sum: "<< target_thrust_yaw_term_(0) + target_thrust_yaw_term_(1) +target_thrust_yaw_term_(2) +target_thrust_yaw_term_(3)<<std::endl;
-//   // std::cout<<"j1: "<< u(3)<<std::endl;
-//   // std::cout<<"j2: "<< u(4)<<std::endl;
-//   // std::cout<<"j3: "<< u(5)<<std::endl;
+  std::cout<<"joint_pos_:"<<joint_pos_[0]<<" "<<joint_pos_[1]<<" "<<joint_pos_[2]<<std::endl;
+  std::cout<<"j1: "<< u(3)<<std::endl;
+  std::cout<<"j2: "<< u(4)<<std::endl;
+  std::cout<<"j3: "<< u(5)<<std::endl;
+  std::cout<<"------------------------"<<std::endl;
 //   // std::cout<<"x: "<< x <<std::endl;
-//   // std::cout<<"pe: "<< Rc.inverse() * (Pe - Pc)<<std::endl;
+  std::cout<<"pe: "<< Rc.inverse() * (Pe - Pc)<<std::endl;
 //   // std::cout<<"Bx: "<< Bx<<std::endl;
 //   // std::cout<<"Cx: "<< Cx<<std::endl;
 //   // std::cout<<"Kd_: "<< Kd_<<std::endl;

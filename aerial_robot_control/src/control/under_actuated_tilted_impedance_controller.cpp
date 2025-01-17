@@ -120,51 +120,19 @@ void UnderActuatedTiltedImpedanceController::controlCore()
 
 bool UnderActuatedTiltedImpedanceController::optimalGain()
 {
-  /* calculate the P_orig pseudo inverse */
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
-  Eigen::MatrixXd inertia = robot_model_->getInertia<Eigen::Matrix3d>();
-  Eigen::MatrixXd P_dash  = inertia.inverse() * P.bottomRows(3); // roll, pitch, yaw
+  Eigen::MatrixXd P_inv = aerial_robot_model::pseudoinverse(P);
 
-  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(9, 9);
-  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(9, motor_num_);
-  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(3, 9);
-  for(int i = 0; i < 3; i++)
+  std::cout<<"P"<<P<<std::endl;
+
+
+  for(int i = 0; i < motor_num_; ++i)
     {
-      A(2 * i, 2 * i + 1) = 1;
-      B.row(2 * i + 1) = P_dash.row(i);
-      C(i, 2 * i) = 1;
+      roll_gains_.at(i) = Eigen::Vector3d(P_inv(i,3) * lqi_roll_pitch_weight_(0),  0, P_inv(i,3) * lqi_roll_pitch_weight_(2));
+      pitch_gains_.at(i) = Eigen::Vector3d(P_inv(i,4) * lqi_roll_pitch_weight_(0), 0, P_inv(i,4) * lqi_roll_pitch_weight_(2));
+      yaw_gains_.at(i) = Eigen::Vector3d(P_inv(i,5) * lqi_yaw_weight_(0), 0, P_inv(i,5) * lqi_yaw_weight_(2));
+
     }
-  A.block(6, 0, 3, 9) = -C;
-  std::cout<<"D---------------"<<std::endl;
-  ROS_DEBUG_STREAM_NAMED("LQI gain generator", "LQI gain generator: B: \n"  <<  B );
-
-  Eigen::VectorXd q_diagonals(9);
-  q_diagonals << lqi_roll_pitch_weight_(0), lqi_roll_pitch_weight_(2), lqi_roll_pitch_weight_(0), lqi_roll_pitch_weight_(2), lqi_yaw_weight_(0), lqi_yaw_weight_(2), lqi_roll_pitch_weight_(1), lqi_roll_pitch_weight_(1), lqi_yaw_weight_(1);
-  Eigen::MatrixXd Q = q_diagonals.asDiagonal();
-
-  Eigen::MatrixXd P_trans = P.topRows(3) / robot_model_->getMass() ;
-  Eigen::MatrixXd R_trans = P_trans.transpose() * P_trans;
-  Eigen::MatrixXd R_input = Eigen::MatrixXd::Identity(motor_num_, motor_num_);
-  Eigen::MatrixXd R = R_trans * trans_constraint_weight_ + R_input * att_control_weight_;
-
-  double t = ros::Time::now().toSec();
-  bool use_kleinman_method = true;
-  if(K_.cols() == 0 || K_.rows() == 0) use_kleinman_method = false;
-  if(!control_utils::care(A, B, R, Q, K_, use_kleinman_method))
-    {
-      ROS_ERROR_STREAM("error in solver of continuous-time algebraic riccati equation");
-      return false;
-    }
-
-  // ROS_DEBUG_STREAM_NAMED("LQI gain generator",  "LQI gain generator: CARE: %f sec" << ros::Time::now().toSec() - t);
-  // ROS_DEBUG_STREAM_NAMED("LQI gain generator",  "LQI gain generator:  K \n" <<  K_);
-
-  // for(int i = 0; i < motor_num_; ++i)
-  //   {
-  //     roll_gains_.at(i) = Eigen::Vector3d(-K_(i,0), K_(i,6), -K_(i,1));
-  //     pitch_gains_.at(i) = Eigen::Vector3d(-K_(i,2),  K_(i,7), -K_(i,3));
-  //     yaw_gains_.at(i) = Eigen::Vector3d(-K_(i,4), K_(i,8), -K_(i,5));
-  //   }
 
   return true;
 }

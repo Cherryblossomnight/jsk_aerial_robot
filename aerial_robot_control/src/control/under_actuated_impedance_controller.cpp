@@ -130,16 +130,13 @@ void UnderActuatedImpedanceController::gainGeneratorFunc()
     {
       if(checkRobotModel())
         {
-            std::cout<<"A--------------"<<std::endl;
           if(optimalGain())
             {
-               std::cout<<"B--------------"<<std::endl;
               clampGain();
               publishGain();
             }
           else
             ROS_ERROR_NAMED("LQI gain generator", "LQI gain generator: can not solve hamilton matrix");
-           std::cout<<"C--------------"<<std::endl;
         }
       else
         {
@@ -280,6 +277,7 @@ bool UnderActuatedImpedanceController::optimalGain()
   // Sec. 3.2
 
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
+
   Eigen::MatrixXd P_inv = aerial_robot_model::pseudoinverse(P);
 
 
@@ -311,27 +309,27 @@ void UnderActuatedImpedanceController::clampGain()
   double roll_p_gain_scale = 1, roll_d_gain_scale = 1, pitch_p_gain_scale = 1, pitch_d_gain_scale = 1, yaw_d_gain_scale = 1;
   if(max_roll_p_gain > max_gain_thresh)
     {
-      ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max roll p gain violate the range of int16_t: " << max_roll_p_gain);
+      //ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max roll p gain violate the range of int16_t: " << max_roll_p_gain);
       roll_p_gain_scale = max_gain_thresh / max_roll_p_gain;
     }
   if(max_roll_d_gain > max_gain_thresh)
     {
-      ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max roll d gain violate the range of int16_t: " << max_roll_d_gain);
+      //ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max roll d gain violate the range of int16_t: " << max_roll_d_gain);
       roll_d_gain_scale = max_gain_thresh / max_roll_d_gain;
     }
   if(max_pitch_p_gain > max_gain_thresh)
     {
-      ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max pitch p gain violate the range of int16_t: " << max_pitch_p_gain);
+      //ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max pitch p gain violate the range of int16_t: " << max_pitch_p_gain);
       pitch_p_gain_scale = max_gain_thresh / max_pitch_p_gain;
     }
   if(max_pitch_d_gain > max_gain_thresh)
     {
-      ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max pitch d gain violate the range of int16_t: " << max_pitch_d_gain);
+      //ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max pitch d gain violate the range of int16_t: " << max_pitch_d_gain);
       pitch_d_gain_scale = max_gain_thresh / max_pitch_d_gain;
     }
   if(max_yaw_d_gain > max_gain_thresh)
     {
-      ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max yaw d gain violate the range of int16_t: " << max_yaw_d_gain);
+      //ROS_WARN_STREAM_NAMED("LQI gain generator", "LQI gain generator: the max yaw d gain violate the range of int16_t: " << max_yaw_d_gain);
       yaw_d_gain_scale = max_gain_thresh / max_yaw_d_gain;
     }
 
@@ -417,39 +415,39 @@ void UnderActuatedImpedanceController::cfgLQICallback(aerial_robot_control::LQIC
       switch(level)
         {
         case Levels::RECONFIGURE_LQI_ROLL_PITCH_P:
-          ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of roll and pitch from " << lqi_roll_pitch_weight_.x() <<  " to "  << config.roll_pitch_p);
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of roll and pitch from " << lqi_roll_pitch_weight_.x() <<  " to "  << config.roll_pitch_p);
           lqi_roll_pitch_weight_.x() = config.roll_pitch_p;
           break;
         case Levels::RECONFIGURE_LQI_ROLL_PITCH_I:
-          ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of roll and pitch from " << lqi_roll_pitch_weight_.y() <<  " to "  << config.roll_pitch_i);
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of roll and pitch from " << lqi_roll_pitch_weight_.y() <<  " to "  << config.roll_pitch_i);
           lqi_roll_pitch_weight_.y() = config.roll_pitch_i;
           break;
         case Levels::RECONFIGURE_LQI_ROLL_PITCH_D:
-          ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of roll and pitch from " << lqi_roll_pitch_weight_.z() <<  " to "  << config.roll_pitch_d);
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of roll and pitch from " << lqi_roll_pitch_weight_.z() <<  " to "  << config.roll_pitch_d);
           lqi_roll_pitch_weight_.z() = config.roll_pitch_d;
           break;
         case Levels::RECONFIGURE_LQI_YAW_P:
-          ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of yaw from " << lqi_yaw_weight_.x() <<  " to "  << config.yaw_p);
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of yaw from " << lqi_yaw_weight_.x() <<  " to "  << config.yaw_p);
           lqi_yaw_weight_.x() = config.yaw_p;
           break;
         case Levels::RECONFIGURE_LQI_YAW_I:
-          ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of yaw from " << lqi_yaw_weight_.y() <<  " to "  << config.yaw_i);
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of yaw from " << lqi_yaw_weight_.y() <<  " to "  << config.yaw_i);
           lqi_yaw_weight_.y() = config.yaw_i;
           break;
         case Levels::RECONFIGURE_LQI_YAW_D:
-          ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of yaw from " << lqi_yaw_weight_.z() <<  " to "  << config.yaw_d);
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of yaw from " << lqi_yaw_weight_.z() <<  " to "  << config.yaw_d);
           lqi_yaw_weight_.z() = config.yaw_d;
           break;
         case Levels::RECONFIGURE_LQI_Z_P:
-          ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of z from " << lqi_z_weight_.x() <<  " to "  << config.z_p);
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of z from " << lqi_z_weight_.x() <<  " to "  << config.z_p);
           lqi_z_weight_.x() = config.z_p;
           break;
         case Levels::RECONFIGURE_LQI_Z_I:
-          ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of z from " << lqi_z_weight_.y() <<  " to "  << config.z_i);
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of z from " << lqi_z_weight_.y() <<  " to "  << config.z_i);
           lqi_z_weight_.y() = config.z_i;
           break;
         case Levels::RECONFIGURE_LQI_Z_D:
-          ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of z from " << lqi_z_weight_.z() <<  " to "  << config.z_d);
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of z from " << lqi_z_weight_.z() <<  " to "  << config.z_d);
           lqi_z_weight_.z() = config.z_d;
           break;
         default :
@@ -464,7 +462,7 @@ void UnderActuatedImpedanceController::cfgLQICallback(aerial_robot_control::LQIC
           publishGain();
         }
         else {
-          ROS_ERROR_NAMED("LQI gain generator", "LQI gain generator: can not solve hamilton matrix");
+          //ROS_ERROR_NAMED("LQI gain generator", "LQI gain generator: can not solve hamilton matrix");
         }
       }
 
