@@ -135,7 +135,7 @@ bool UnderActuatedTiltedImpedanceController::optimalGain()
       C(i, 2 * i) = 1;
     }
   A.block(6, 0, 3, 9) = -C;
-
+  std::cout<<"D---------------"<<std::endl;
   ROS_DEBUG_STREAM_NAMED("LQI gain generator", "LQI gain generator: B: \n"  <<  B );
 
   Eigen::VectorXd q_diagonals(9);
@@ -156,15 +156,15 @@ bool UnderActuatedTiltedImpedanceController::optimalGain()
       return false;
     }
 
-  ROS_DEBUG_STREAM_NAMED("LQI gain generator",  "LQI gain generator: CARE: %f sec" << ros::Time::now().toSec() - t);
-  ROS_DEBUG_STREAM_NAMED("LQI gain generator",  "LQI gain generator:  K \n" <<  K_);
+  // ROS_DEBUG_STREAM_NAMED("LQI gain generator",  "LQI gain generator: CARE: %f sec" << ros::Time::now().toSec() - t);
+  // ROS_DEBUG_STREAM_NAMED("LQI gain generator",  "LQI gain generator:  K \n" <<  K_);
 
-  for(int i = 0; i < motor_num_; ++i)
-    {
-      roll_gains_.at(i) = Eigen::Vector3d(-K_(i,0), K_(i,6), -K_(i,1));
-      pitch_gains_.at(i) = Eigen::Vector3d(-K_(i,2),  K_(i,7), -K_(i,3));
-      yaw_gains_.at(i) = Eigen::Vector3d(-K_(i,4), K_(i,8), -K_(i,5));
-    }
+  // for(int i = 0; i < motor_num_; ++i)
+  //   {
+  //     roll_gains_.at(i) = Eigen::Vector3d(-K_(i,0), K_(i,6), -K_(i,1));
+  //     pitch_gains_.at(i) = Eigen::Vector3d(-K_(i,2),  K_(i,7), -K_(i,3));
+  //     yaw_gains_.at(i) = Eigen::Vector3d(-K_(i,4), K_(i,8), -K_(i,5));
+  //   }
 
   return true;
 }

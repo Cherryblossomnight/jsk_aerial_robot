@@ -130,13 +130,16 @@ void UnderActuatedImpedanceController::gainGeneratorFunc()
     {
       if(checkRobotModel())
         {
+            std::cout<<"A--------------"<<std::endl;
           if(optimalGain())
             {
+               std::cout<<"B--------------"<<std::endl;
               clampGain();
               publishGain();
             }
           else
             ROS_ERROR_NAMED("LQI gain generator", "LQI gain generator: can not solve hamilton matrix");
+           std::cout<<"C--------------"<<std::endl;
         }
       else
         {
@@ -275,76 +278,18 @@ bool UnderActuatedImpedanceController::optimalGain()
   // referece:
   // M, Zhao, et.al, "Transformable multirotor with two-dimensional multilinks: modeling, control, and whole-body aerial manipulation"
   // Sec. 3.2
-  
 
-  
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
-  Eigen::MatrixXd P_dash = Eigen::MatrixXd::Zero(lqi_mode_, motor_num_);
-  Eigen::MatrixXd inertia = robot_model_->getInertia<Eigen::Matrix3d>();
-  P_dash.row(0) = P.row(2) / robot_model_->getMass(); // z
-  P_dash.bottomRows(lqi_mode_ - 1) = (inertia.inverse() * P.bottomRows(3)).topRows(lqi_mode_ - 1); // roll, pitch, yaw
-
-  Eigen::MatrixXd A = Eigen::MatrixXd::Zero(lqi_mode_ * 3, lqi_mode_ * 3);
-  Eigen::MatrixXd B = Eigen::MatrixXd::Zero(lqi_mode_ * 3, motor_num_);
-  Eigen::MatrixXd C = Eigen::MatrixXd::Zero(lqi_mode_, lqi_mode_ * 3);
-  for(int i = 0; i < lqi_mode_; i++)
-    {
-      A(2 * i, 2 * i + 1) = 1;
-      B.row(2 * i + 1) = P_dash.row(i);
-      C(i, 2 * i) = 1;
-    }
-  std::cout<<"CC"<<std::endl;
-  std::cout<<A<<std::endl;
-  A.block(lqi_mode_ * 2, 0, lqi_mode_, lqi_mode_ * 3) = -C;
-
-  ROS_DEBUG_STREAM_NAMED("LQI gain generator", "LQI gain generator: B: \n"  <<  B );
-
-  Eigen::VectorXd q_diagonals(lqi_mode_ * 3);
-  if(lqi_mode_ == 3)
-    {
-      q_diagonals << lqi_z_weight_(0), lqi_z_weight_(2), lqi_roll_pitch_weight_(0), lqi_roll_pitch_weight_(2), lqi_roll_pitch_weight_(0), lqi_roll_pitch_weight_(2), lqi_z_weight_(1), lqi_roll_pitch_weight_(1), lqi_roll_pitch_weight_(1);
-    }
-  else
-    {
-      q_diagonals << lqi_z_weight_(0), lqi_z_weight_(2), lqi_roll_pitch_weight_(0), lqi_roll_pitch_weight_(2), lqi_roll_pitch_weight_(0), lqi_roll_pitch_weight_(2), lqi_yaw_weight_(0), lqi_yaw_weight_(2), lqi_z_weight_(1), lqi_roll_pitch_weight_(1), lqi_roll_pitch_weight_(1), lqi_yaw_weight_(1);
-    }
-  Eigen::MatrixXd Q = q_diagonals.asDiagonal();
-
-  Eigen::MatrixXd R  = Eigen::MatrixXd::Zero(motor_num_, motor_num_);
-  for(int i = 0; i < motor_num_; ++i) R(i,i) = r_.at(i);
-
-  /* solve continuous-time algebraic Ricatti equation */
-  double t = ros::Time::now().toSec();
-
-  if(K_.cols() != lqi_mode_ * 3)
-    {
-      resetGain(); // four axis -> three axis and vice versa
-    }
-
-  bool use_kleinman_method = true;
-  if(K_.cols() == 0 || K_.rows() == 0)
-    {
-      ROS_DEBUG_STREAM_NAMED("LQI gain generator",  "LQI gain generator: do not use kleinman method");
-      use_kleinman_method = false;
-    }
-  if(!control_utils::care(A, B, R, Q, K_, use_kleinman_method))
-    {
-      ROS_ERROR_STREAM_NAMED("LQI gain generator",  "LQI gain generator: error in solver of continuous-time algebraic riccati equation");
-      return false;
-    }
-
-  ROS_DEBUG_STREAM_NAMED("LQI gain generator",  "LQI gain generator: CARE: %f sec" << ros::Time::now().toSec() - t);
-  ROS_DEBUG_STREAM_NAMED("LQI gain generator",  "LQI gain generator:  K \n" <<  K_);
+  Eigen::MatrixXd P_inv = aerial_robot_model::pseudoinverse(P);
 
 
   for(int i = 0; i < motor_num_; ++i)
     {
-      roll_gains_.at(i) = Eigen::Vector3d(-K_(i,2),  K_(i, lqi_mode_ * 2 + 1), -K_(i,3));
-      pitch_gains_.at(i) = Eigen::Vector3d(-K_(i,4), K_(i, lqi_mode_ * 2 + 2), -K_(i,5));
-      if(lqi_mode_ == 4) yaw_gains_.at(i) = Eigen::Vector3d(-K_(i,6), K_(i, lqi_mode_ * 2 + 3), -K_(i,7));
-      else yaw_gains_.at(i).setZero();
-    }
+      roll_gains_.at(i) = Eigen::Vector3d(P_inv(i,3) * lqi_roll_pitch_weight_(0),  0, P_inv(i,3) * lqi_roll_pitch_weight_(2));
+      pitch_gains_.at(i) = Eigen::Vector3d(P_inv(i,4) * lqi_roll_pitch_weight_(0), 0, P_inv(i,4) * lqi_roll_pitch_weight_(2));
+      yaw_gains_.at(i) = Eigen::Vector3d(P_inv(i,5) * lqi_yaw_weight_(0), 0, P_inv(i,5) * lqi_yaw_weight_(2));
 
+    }
 
   return true;
 }
@@ -406,7 +351,7 @@ bool UnderActuatedImpedanceController::checkRobotModel()
 {
   if(!robot_model_->initialized())
     {
-      ROS_DEBUG_NAMED("LQI gain generator", "LQI gain generator: robot model is not initiliazed");
+      ROS_DEBUG_NAMED("Impedance controller", "Impedance controller: robot model is not initiliazed");
       return false;
     }
 
@@ -440,11 +385,7 @@ void UnderActuatedImpedanceController::rosParamInit()
   getParam<double>(lqi_nh, "z_p", lqi_z_weight_[0], 1.0);
   getParam<double>(lqi_nh, "z_i", lqi_z_weight_[1], 1.0);
   getParam<double>(lqi_nh, "z_d", lqi_z_weight_[2], 1.0);
-
-  getParam<int>(lqi_nh, "lqi_mode", lqi_mode_, 4);
-  if (lqi_mode_ != 3 && lqi_mode_ != 4) {
-    ROS_ERROR_STREAM_NAMED("LQI gain generator",  "LQI gain generator: lqi model should be 3 or 4, " << lqi_mode_ << " is not allowed.");
-  }
+  
 }
 
 void UnderActuatedImpedanceController::publishGain()
@@ -535,7 +476,7 @@ void UnderActuatedImpedanceController::sendRotationalInertiaComp()
   if(!gyro_moment_compensation_) return;
 
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
-  Eigen::MatrixXd p_mat_pseudo_inv_ = aerial_robot_model::pseudoinverse(P.middleRows(2, lqi_mode_));
+  Eigen::MatrixXd p_mat_pseudo_inv_ = aerial_robot_model::pseudoinverse(P.middleRows(2, 4));
 
   spinal::PMatrixPseudoInverseWithInertia p_pseudo_inverse_with_inertia_msg; // to spinal
   p_pseudo_inverse_with_inertia_msg.pseudo_inverse.resize(motor_num_);
@@ -545,10 +486,8 @@ void UnderActuatedImpedanceController::sendRotationalInertiaComp()
       /* the p matrix pseudo inverse and inertia */
       p_pseudo_inverse_with_inertia_msg.pseudo_inverse[i].r = p_mat_pseudo_inv_(i, 1) * 1000;
       p_pseudo_inverse_with_inertia_msg.pseudo_inverse[i].p = p_mat_pseudo_inv_(i, 2) * 1000;
-      if(lqi_mode_ == 4)
-        p_pseudo_inverse_with_inertia_msg.pseudo_inverse[i].y = p_mat_pseudo_inv_(i, 3) * 1000;
-      else
-        p_pseudo_inverse_with_inertia_msg.pseudo_inverse[i].y = 0;
+      p_pseudo_inverse_with_inertia_msg.pseudo_inverse[i].y = p_mat_pseudo_inv_(i, 3) * 1000;
+
     }
 
   /* the articulated inertia */
