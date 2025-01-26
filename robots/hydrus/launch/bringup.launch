@@ -4,7 +4,7 @@
   <arg name="real_machine" default="True" />
   <arg name="simulation" default="False" />
   <arg name="type" default="quad" />
-  <arg name="onboards_model" default="tilt_20deg_201907" />
+  <arg name="onboards_model" default="default_mode_201907" />
   <arg name="estimate_mode"  default= "0" />
   <arg name="sim_estimate_mode"  default= "2" />
   <arg name="headless" default="True" />
@@ -20,8 +20,7 @@
   <arg name="robot_ns" value="hydrus$(arg robot_id)" />
   <arg name="config_dir" default="$(find hydrus)/config/$(arg type)" />
   <arg name="mujoco" default="False" />
-<!-- tilt_20deg_201907 -->
-<!-- default_mode_201907 -->
+
   ###########  Parameters  ###########
   <group ns="$(arg robot_ns)">
 

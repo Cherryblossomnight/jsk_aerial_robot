@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<robot
+    xmlns:xacro="http://www.ros.org/wiki/xacro" name="hole" >
+  <link
+    name="hole_link">
+    <inertial>
+      <origin
+        xyz="1.71235385262953E-17 -1.5225511599763E-17 -0.576299501137256"
+        rpy="0 0 0" />
+      <mass
+        value="11.1367786842339" />
+      <inertia
+        ixx="1.37473279671273"
+        ixy="7.83505476210237E-18"
+        ixz="4.77324062947275E-17"
+        iyy="1.44357122100688"
+        iyz="-1.95807553142281E-17"
+        izz="0.161902575245923" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://hydrus/urdf/mesh/scene/hole_link.dae" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.8 0.8 0.8 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://hydrus/urdf/mesh/scene/hole_link.dae" />
+      </geometry>
+    </collision>
+  </link>
+
+  <gazebo reference="hole_link">
+    <static>true</static>
+  </gazebo>
+
+</robot>
