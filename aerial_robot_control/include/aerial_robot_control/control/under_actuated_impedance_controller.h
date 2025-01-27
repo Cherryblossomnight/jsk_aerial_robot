@@ -92,11 +92,13 @@ namespace aerial_robot_control
     bool gyro_moment_compensation_;
     std::thread gain_generator_thread_;
 
-    Eigen::VectorXd joint_pos_ = Eigen::VectorXd::Zero(6);
-    Eigen::VectorXd joint_vel_ = Eigen::VectorXd::Zero(6); 
-    Eigen::VectorXd target_joint_pos_ = Eigen::VectorXd::Zero(6);
-    Eigen::VectorXd target_joint_vel_ = Eigen::VectorXd::Zero(6);
-    Eigen::VectorXd target_joint_acc_ = Eigen::VectorXd::Zero(6);
+    std::vector<std::string> joint_name_;
+
+    Eigen::VectorXd joint_pos_ = Eigen::VectorXd::Zero(7);
+    Eigen::VectorXd joint_vel_ = Eigen::VectorXd::Zero(7);
+    Eigen::VectorXd target_joint_pos_ = Eigen::VectorXd::Zero(3);
+    Eigen::VectorXd target_joint_vel_ = Eigen::VectorXd::Zero(3);;
+    Eigen::VectorXd target_joint_acc_ = Eigen::VectorXd::Zero(3);;
     Eigen::MatrixXd Pre_Bpr_ = Eigen::MatrixXd::Zero(3, 6);
     Eigen::VectorXd Pre_Pe_ = Eigen::VectorXd::Zero(3);
     Eigen::VectorXd target_thrust_z_term_;

@@ -68,6 +68,8 @@ void UnderActuatedTiltedLQIController::controlCore()
   target_pitch_ = atan2(target_acc_dash.x(), target_acc_dash.z());
   target_roll_ = atan2(-target_acc_dash.y(), sqrt(target_acc_dash.x() * target_acc_dash.x() + target_acc_dash.z() * target_acc_dash.z()));
 
+  // target_pitch_ = 0.0;
+  // target_roll_ = 0.0;
   if(navigator_->getForceLandingFlag())
     {
       target_pitch_ = 0;

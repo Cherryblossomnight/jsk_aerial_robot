@@ -70,6 +70,8 @@ void UnderActuatedImpedanceController::initialize(ros::NodeHandle nh,
   target_thrust_z_term_ = Eigen::VectorXd::Zero(motor_num_);
   target_thrust_yaw_term_ = Eigen::VectorXd::Zero(motor_num_);
 
+  joint_pos_ = Eigen::VectorXd::Zero(robot_model_->getJointNum());
+
   // joint_pos_ = Eigen::VectorXd::Zero(6);
   // joint_vel_ = Eigen::VectorXd::Zero(6); 
   // // target_joint_pos_ = Eigen::VectorXd::Zero(6);
@@ -502,10 +504,15 @@ void UnderActuatedImpedanceController::sendRotationalInertiaComp()
 
 void UnderActuatedImpedanceController::jointStateCallback(const sensor_msgs::JointStateConstPtr& state)
 {
-  //std::cout<<*state<<std::endl;
-
-  for (int i = 0; i < state->position.size(); i++)
+  if (joint_pos_.size() == 0)
   {
+
+    //joint_name_.resize(state->position.size());
+  }
+
+  for (int i = 0; i < state->name.size(); i++)
+  {
+    //joint_name_[i] = state->name[i];
     joint_pos_[i] = state->position[i];
     joint_vel_[i] = state->velocity[i];
   }

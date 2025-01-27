@@ -307,6 +307,20 @@ void HydrusImpedanceController::controlCore()
   // std::cout<<"Jdot: "<<  (J_ - Pre_J_) / (time-time_).toSec()<<std::endl;
   // std::cout<<"u: "<< u<<std::endl;
 
+    std::cout<<"Je_p"<<Je_p<<std::endl;
+  std::cout<<"Rc"<<Rc<<std::endl;
+
+  std::cout<<"J "<<J<<std::endl;
+  std::cout<<"joint_pos_:"<<joint_pos_[4]<<" "<<joint_pos_[5]<<" "<<joint_pos_[6]<<std::endl;
+  std::cout<<"tar_joint_pos_:"<<target_joint_pos_[0]<<" "<<target_joint_pos_[1]<<" "<<target_joint_pos_[2]<<std::endl;
+  std::cout<<"u: "<< u<<std::endl;
+  std::cout<<"j1: "<< u(3)<<std::endl;
+  std::cout<<"j2: "<< u(4)<<std::endl;
+  std::cout<<"j3: "<< u(5)<<std::endl;
+  std::cout<<"------------------------"<<std::endl;
+//   // std::cout<<"x: "<< x <<std::endl;
+  std::cout<<"pe: "<< Rc.inverse() * (Pe - Pc)<<std::endl;
+
   Pre_J_ = J;
   Pre_Pe_ = Rc.inverse() * (Pe - Pc);
   Pre_Bpr_ = Bpr;
@@ -326,7 +340,7 @@ void HydrusImpedanceController::rosParamInit()
   getParam<double>(param_nh, "rotation_p", rotation_p_, 30.0);
   getParam<double>(param_nh, "joints_p", joints_p_, 15.0);
   getParam<double>(param_nh, "pos_p", pos_p_, 10.0);
-  getParam<double>(param_nh, "rotation_d", rotation_d_, 10.0);
+  getParam<double>(param_nh, "rotation_d", rotation_d_,30.0);
   getParam<double>(param_nh, "joints_d", joints_d_, 5.0);
   getParam<double>(param_nh, "pos_d", pos_d_, 4.0);
 }

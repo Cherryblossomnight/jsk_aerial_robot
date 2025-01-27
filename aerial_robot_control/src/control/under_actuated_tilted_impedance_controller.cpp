@@ -123,7 +123,7 @@ bool UnderActuatedTiltedImpedanceController::optimalGain()
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
   Eigen::MatrixXd P_inv = aerial_robot_model::pseudoinverse(P);
 
-  std::cout<<"P"<<P<<std::endl;
+  // std::cout<<"P"<<P<<std::endl;
 
 
   for(int i = 0; i < motor_num_; ++i)

@@ -24,6 +24,9 @@ void HydrusTiltedImpedanceController::initialize(ros::NodeHandle nh,
   pos_cmd_.x = -0.3;
   pos_cmd_.y = 0.3;
   pos_cmd_.z = 0.0;
+
+
+  
 }
 
 bool HydrusTiltedImpedanceController::checkRobotModel()
@@ -120,13 +123,11 @@ void HydrusTiltedImpedanceController::controlCore()
   T(2, 2) = cos(rpy.x()) * cos(rpy.y());
 
   Eigen::Matrix3d Q = R.transpose() * T;
-  std::cout<<"R"<<R<<std::endl;
-
-   std::cout<<"R"<<R1<<std::endl;
-     std::cout<<"R"<<R<<std::endl;
   if (mode_.data == 1) // position_control
     J.block(3, 3, 3, 3) = Rc.inverse() * (Je_p - (J1_p + J2_p + J3_p + J4_p) / 4);
 
+  std::cout<<"Je_p"<<Je_p<<std::endl;
+  std::cout<<"Rc"<<Rc<<std::endl;
   double uav_mass = robot_model_->getMass();
   Eigen::Matrix3d inertia = robot_model_->getInertia<Eigen::Matrix3d>();
 
@@ -177,9 +178,9 @@ void HydrusTiltedImpedanceController::controlCore()
   }
   else
   {  
-    x(3) = target_joint_pos_[0] - joint_pos_[0];
-    x(4) = target_joint_pos_[1] - joint_pos_[1];
-    x(5) = target_joint_pos_[2] - joint_pos_[2];
+    x(3) = target_joint_pos_[0] - joint_pos_[4];
+    x(4) = target_joint_pos_[1] - joint_pos_[5];
+    x(5) = target_joint_pos_[2] - joint_pos_[6];
   }
 
   x_dot(0) = pid_controllers_.at(ROLL).getErrD();
@@ -193,9 +194,9 @@ void HydrusTiltedImpedanceController::controlCore()
   }
   else
   {  
-    x_dot(3) = target_joint_vel_[0] - joint_vel_[0];
-    x_dot(4) = target_joint_vel_[1] - joint_vel_[1];
-    x_dot(5) = target_joint_vel_[2] - joint_vel_[2];
+    x_dot(3) = target_joint_vel_[0] - joint_vel_[4];
+    x_dot(4) = target_joint_vel_[1] - joint_vel_[5];
+    x_dot(5) = target_joint_vel_[2] - joint_vel_[6];
   }
 
   x_d_dot(0) = target_omega_.x();
@@ -252,8 +253,8 @@ void HydrusTiltedImpedanceController::controlCore()
 
   //Kd = -Cx + 2 * 1.0 * (Kp * Sigma).sqrt();
 
- // std::cout<<"x: "<<x<<std::endl;
 
+ std::cout<<"J "<<J<<std::endl;
   // Exploiting Redundancy in Cartesian Impedance Control of UAVs Equipped with a Robotic Arm, Equation (9)
   u = J.transpose() * (Bx * x_d_ddot + Cx * x_d_dot + Kd * x_dot + Kp * x);
   // Gravity compensation
@@ -286,7 +287,10 @@ void HydrusTiltedImpedanceController::controlCore()
  
 //   // std::cout<<"target_thrust_yaw_term_: "<< target_thrust_yaw_term_<<std::endl;
 //   // std::cout<<"sum: "<< target_thrust_yaw_term_(0) + target_thrust_yaw_term_(1) +target_thrust_yaw_term_(2) +target_thrust_yaw_term_(3)<<std::endl;
-  std::cout<<"joint_pos_:"<<joint_pos_[0]<<" "<<joint_pos_[1]<<" "<<joint_pos_[2]<<std::endl;
+  std::cout<<"joint_pos_:"<<joint_pos_[4]<<" "<<joint_pos_[5]<<" "<<joint_pos_[6]<<std::endl;
+  std::cout<<"joint_pos_:"<<joint_pos_[4]<<" "<<joint_pos_[5]<<" "<<joint_pos_[6]<<std::endl;
+  std::cout<<"tar_joint_pos_:"<<target_joint_pos_[0]<<" "<<target_joint_pos_[1]<<" "<<target_joint_pos_[2]<<std::endl;
+  std::cout<<"uz: "<< uz<<std::endl;
   std::cout<<"j1: "<< u(3)<<std::endl;
   std::cout<<"j2: "<< u(4)<<std::endl;
   std::cout<<"j3: "<< u(5)<<std::endl;
@@ -329,7 +333,11 @@ void HydrusTiltedImpedanceController::rosParamInit()
 Eigen::Matrix3d HydrusTiltedImpedanceController::getPositionJacobian(std::string name)
 {
     Eigen::MatrixXd jacobian = robot_model_->getJacobians(name);
-    Eigen::Matrix3d p_jacobian = jacobian.block(0, 0, 3, 3);
+    Eigen::MatrixXd p_jacobian = Eigen::Matrix3d::Zero();
+    // std::cout<< p_jacobian<<std::endl;
+    p_jacobian.block(0, 0, 3, 1) = jacobian.block(0, 1, 3, 1);
+    p_jacobian.block(0, 1, 3, 1) = jacobian.block(0, 3, 3, 1);
+    p_jacobian.block(0, 2, 3, 1) = jacobian.block(0, 5, 3, 1);
     return p_jacobian;
 
 }
@@ -337,7 +345,10 @@ Eigen::Matrix3d HydrusTiltedImpedanceController::getPositionJacobian(std::string
 Eigen::Matrix3d HydrusTiltedImpedanceController::getOrientationJacobian(std::string name)
 {
     Eigen::MatrixXd jacobian = robot_model_->getJacobians(name);
-    Eigen::Matrix3d o_jacobian = jacobian.block(3, 0, 3, 3);
+    Eigen::MatrixXd o_jacobian = Eigen::Matrix3d::Zero();
+    o_jacobian.block(0, 0, 3, 1) = jacobian.block(3, 1, 3, 1);
+    o_jacobian.block(0, 1, 3, 1) = jacobian.block(3, 3, 3, 1);
+    o_jacobian.block(0, 2, 3, 1) = jacobian.block(3, 5, 3, 1);
     return o_jacobian;
 }
 
