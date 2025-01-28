@@ -4,22 +4,28 @@ import sys
 import time
 import rospy
 import math
+import tf2_ros
 from std_msgs.msg import UInt8
 from geometry_msgs.msg import Point
 from aerial_robot_msgs.msg import FlightNav
+from tf.transformations import euler_from_quaternion
+
 
 if __name__ == "__main__":
 
     rospy.init_node("rod_in_hole")
 
     link_num = rospy.get_param("~link_num", 4)
-    duration = rospy.get_param("~duration", 6)
+    duration = rospy.get_param("~duration", 1)
     joint_control_topic_name = rospy.get_param("~joint_control_topic_name", "joints_ctrl")
     mode_pub = rospy.Publisher("/hydrus_xi/imp_mode", UInt8, queue_size=1)
     pos_pub = rospy.Publisher("/hydrus_xi/pos_cmds", Point, queue_size=1)
     nav_pub = rospy.Publisher("/hydrus_xi/uav/nav", FlightNav, queue_size=1)
     a = 0
     time.sleep(1)
+
+  
+
 
     mode = UInt8()
     mode.data = 1
@@ -29,31 +35,48 @@ if __name__ == "__main__":
     pos.z = 0.0
     nav_msg = FlightNav()
     nav_msg.pos_xy_nav_mode = 4 # pos_vel mode
-    nav_msg.target_pos_x = -0.2
+    nav_msg.target_pos_x = -0.3
     nav_msg.target_vel_x = -0.2
-    nav_msg.target_pos_y = -0.45
+    nav_msg.target_pos_y = 0.0
     nav_msg.target_vel_y = -0.2
     nav_msg.pos_z_nav_mode = 4 
     nav_msg.target_pos_z = 1.0
     nav_msg.target_vel_z = 0.2
     nav_msg.yaw_nav_mode = 4 
-    #nav_msg.target_yaw = 2.55
-    nav_msg.target_omega_z = 0.8
-    nav_msg.target_yaw = 2.55
+    nav_msg.target_omega_z = 1.2
+    nav_msg.target_yaw = 1.57
 
     mode_pub.publish(mode)
     pos_pub.publish(pos)
     nav_pub.publish(nav_msg) # go to the origin point
-    time.sleep(20)
+    tf_buffer = tf2_ros.Buffer() 
+    tf_listener = tf2_ros.TransformListener(tf_buffer) 
+    
 
+    
   
+ 
+
+    time.sleep(5)
+    print("preparation 1")
+ 
+    transform = tf_buffer.lookup_transform("hydrus_xi/end_effector", "hydrus_xi/cog", rospy.Time(0), rospy.Duration(1.0)) 
+    quatenion = [transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w]
+    roll, pitch, yaw = euler_from_quaternion(quatenion)
+    nav_msg.target_yaw = 3.14 + yaw
+    nav_msg.target_pos_y = -transform.transform.translation.y
+    nav_pub.publish(nav_msg)
+
+
+    time.sleep(15)
+    print("preparation 2")
 
 
     while not rospy.is_shutdown():
+        nav_msg = FlightNav()
 
-        nav_msg.pos_xy_nav_mode = 4 # pos_vel mode
-        nav_msg.target_pos_x -= 0.05
-        nav_msg.target_vel_x = -0.1
+        nav_msg.pos_xy_nav_mode = 1 # pos_vel mode
+        nav_msg.target_vel_x = -0.005
 
         nav_pub.publish(nav_msg)
         #     nav_msg.target_pos_y = 1.25   # to right

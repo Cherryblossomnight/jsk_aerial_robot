@@ -51,3 +51,20 @@ controller:
 
     trans_constraint_weight: 100
     att_control_weight: 1
+
+  impedance:
+    gain_generate_rate: 15.0
+    gyro_moment_compensation: true
+    clamp_gain: true
+
+    rotation_p: 10.0
+    rotation_d: 40.0
+
+    joints_p: 15.0
+    joints_d: 2.0
+
+    pos_p: 10.0
+    pos_d: 2.0
+
+    trans_constraint_weight: 100
+    att_control_weight: 1
