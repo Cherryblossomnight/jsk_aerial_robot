@@ -57,8 +57,8 @@ controller:
     gyro_moment_compensation: true
     clamp_gain: true
 
-    rotation_p: 10.0
-    rotation_d: 40.0
+    rotation_p: 20.0
+    rotation_d: 3000.0
 
     joints_p: 15.0
     joints_d: 2.0

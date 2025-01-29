@@ -63,6 +63,7 @@ namespace aerial_robot_control
     virtual void rosParamInit() override;
     Eigen::Matrix3d getPositionJacobian(std::string name);
     Eigen::Matrix3d getOrientationJacobian(std::string name);
+    Eigen::MatrixXd HydrusTiltedImpedanceController::getCmatrix(Eigen::MatrixXd Pre_B, Eigen::MatrixXd B, Eigen::VectorXd xi, Eigen::VectorXd pre_xi, double dt) override;
   };
    
 };

@@ -19,6 +19,9 @@ void HydrusImpedanceController::initialize(ros::NodeHandle nh,
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller1/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller2/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller3/simulation/command", 1));
+  pos_pubs_.push_back(nh_.advertise<std_msgs::Float64>("pos/x", 1));
+  pos_pubs_.push_back(nh_.advertise<std_msgs::Float64>("pos/y", 1));
+  pos_pubs_.push_back(nh_.advertise<std_msgs::Float64>("pos/z", 1));
   target_joint_pos_[0] = 1.57;
   target_joint_pos_[1] = 1.57;
   target_joint_pos_[2] = 1.57;
@@ -259,7 +262,7 @@ void HydrusImpedanceController::controlCore()
 
   //Kd = -Cx + 2 * 1.0 * (Kp * Sigma).sqrt();
 
- // std::cout<<"x: "<<x<<std::endl;
+  std::cout<<"x: "<<x<<std::endl;
 
   // Exploiting Redundancy in Cartesian Impedance Control of UAVs Equipped with a Robotic Arm, Equation (9)
   u = J.transpose() * (Bx * x_d_ddot + Cx * x_d_dot + Kd * x_dot + Kp * x);
@@ -306,8 +309,8 @@ void HydrusImpedanceController::controlCore()
   // std::cout<<"j: "<<  Pre_J_<<std::endl;
   // std::cout<<"Jdot: "<<  (J_ - Pre_J_) / (time-time_).toSec()<<std::endl;
   // std::cout<<"u: "<< u<<std::endl;
-
-    std::cout<<"Je_p"<<Je_p<<std::endl;
+  Eigen::MatrixXd pe = Rc.inverse() * (Pe - Pc);
+  std::cout<<"Je_p"<<Je_p<<std::endl;
   std::cout<<"Rc"<<Rc<<std::endl;
 
   std::cout<<"J "<<J<<std::endl;
@@ -319,8 +322,17 @@ void HydrusImpedanceController::controlCore()
   std::cout<<"j3: "<< u(5)<<std::endl;
   std::cout<<"------------------------"<<std::endl;
 //   // std::cout<<"x: "<< x <<std::endl;
-  std::cout<<"pe: "<< Rc.inverse() * (Pe - Pc)<<std::endl;
+  std::cout<<"pe: "<< pe<<std::endl;
+  std_msgs::Float64 pe1_term, pe2_term, pe3_term;
 
+  pe1_term.data = pe(0);
+  pe2_term.data = pe(1);
+  pe3_term.data = pe(2);
+
+
+  pos_pubs_[0].publish(pe1_term);
+  pos_pubs_[1].publish(pe2_term);
+  pos_pubs_[2].publish(pe3_term);
   Pre_J_ = J;
   Pre_Pe_ = Rc.inverse() * (Pe - Pc);
   Pre_Bpr_ = Bpr;

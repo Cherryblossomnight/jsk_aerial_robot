@@ -109,6 +109,7 @@ namespace aerial_robot_control
     ros::Subscriber pos_cmd_sub_;
     ros::Subscriber mode_sub_;
     std::vector<ros::Publisher> joint_cmd_pubs_;
+    std::vector<ros::Publisher> pos_pubs_;
     geometry_msgs::Point pos_cmd_;
     std_msgs::UInt8 mode_;
     //private functions
@@ -122,6 +123,8 @@ namespace aerial_robot_control
     virtual bool optimalGain();
     virtual void clampGain();
     virtual void publishGain();
+
+    virtual Eigen::MatrixXd getCmatrix(Eigen::MatrixXd Pre_B, Eigen::MatrixXd B, Eigen::VectorXd xi, Eigen::VectorXd pre_xi, double dt);
 
     virtual void sendCmd() override;
     virtual void sendFourAxisCommand();

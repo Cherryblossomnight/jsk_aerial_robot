@@ -18,6 +18,9 @@ void HydrusTiltedImpedanceController::initialize(ros::NodeHandle nh,
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller1/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller2/simulation/command", 1));
   joint_cmd_pubs_.push_back(nh_.advertise<std_msgs::Float64>("servo_controller/joints/controller3/simulation/command", 1));
+  pos_pubs_.push_back(nh_.advertise<std_msgs::Float64>("pos/x", 1));
+  pos_pubs_.push_back(nh_.advertise<std_msgs::Float64>("pos/y", 1));
+  pos_pubs_.push_back(nh_.advertise<std_msgs::Float64>("pos/z", 1));
   target_joint_pos_[0] = 1.57;
   target_joint_pos_[1] = 1.57;
   target_joint_pos_[2] = 1.57;
@@ -55,6 +58,8 @@ void HydrusTiltedImpedanceController::controlCore()
   Eigen::MatrixXd Kp = Eigen::MatrixXd::Zero(6, 6);
   Eigen::MatrixXd Kd = Eigen::MatrixXd::Zero(6, 6);
   Eigen::MatrixXd J = Eigen::MatrixXd::Identity(6, 6);
+  Eigen::VectorXd xi =  Eigen::VectorXd::Zero(6); 
+  Eigen::VectorXd xi_dot =  Eigen::VectorXd::Zero(6); 
   Eigen::VectorXd x =  Eigen::VectorXd::Zero(6); 
   Eigen::VectorXd x_dot =  Eigen::VectorXd::Zero(6); 
   Eigen::VectorXd x_d_dot =  Eigen::VectorXd::Zero(6); 
@@ -168,6 +173,10 @@ void HydrusTiltedImpedanceController::controlCore()
   tf::Vector3 target_acc_ = navigator_->getTargetAcc();
   tf::Vector3 target_omega_ = navigator_->getTargetOmega();
   tf::Vector3 target_ang_acc_ = navigator_->getTargetAngAcc();
+
+
+  pos_ = estimator_->getPos(Frame::COG, estimator_->getEstimateMode());
+  vel_ = estimator_->getVel(Frame::COG, estimator_->getEstimateMode());
  
 
   x(0) = pid_controllers_.at(ROLL).getErrP();
@@ -243,8 +252,8 @@ void HydrusTiltedImpedanceController::controlCore()
   Eigen::MatrixXd Sigma = Eigen::MatrixXd::Zero(6, 6);
   for (int i = 0; i < 6; i++) Sigma(i, i) = abs(Bx(i, i));
 
-
-
+  std::cout<<"CE: "<<CE<<std::endl;
+  std::cout<<"Cx: "<<Cx<<std::endl;
 
   //Kd.block(0, 0, 3, 3) = -Cx.block(0, 0, 3, 3) + 2 * 0.9 * (Kp.block(0, 0, 3, 3) * abs(Bx(2, 2))).sqrt();
   Kd.block(0, 0, 3, 3) = rotation_d_ * Eigen::Matrix3d::Identity();
@@ -303,6 +312,17 @@ void HydrusTiltedImpedanceController::controlCore()
   joint_cmd_pubs_[0].publish(j1_term);
   joint_cmd_pubs_[1].publish(j2_term);
   joint_cmd_pubs_[2].publish(j3_term);
+  Eigen::MatrixXd pe = Rc.inverse() * (Pe - Pc);
+  std_msgs::Float64 pe1_term, pe2_term, pe3_term;
+
+  pe1_term.data = pe(0);
+  pe2_term.data = pe(1);
+  pe3_term.data = pe(2);
+
+
+  pos_pubs_[0].publish(pe1_term);
+  pos_pubs_[1].publish(pe2_term);
+  pos_pubs_[2].publish(pe3_term);
 
  
 //   // std::cout<<"target_thrust_yaw_term_: "<< target_thrust_yaw_term_<<std::endl;
@@ -333,6 +353,11 @@ std::cout<<"u: "<< u<<std::endl;
 
 
   UnderActuatedImpedanceController::controlCore();
+}
+
+Eigen::MatrixXd HydrusTiltedImpedanceController::getCmatrix(Eigen::MatrixXd Pre_B, Eigen::MatrixXd B, Eigen::VectorXd xi, Eigen::VectorXd pre_xi, double dt)
+{
+
 }
 
 void HydrusTiltedImpedanceController::rosParamInit()
