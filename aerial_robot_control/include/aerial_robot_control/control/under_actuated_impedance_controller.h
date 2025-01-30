@@ -100,7 +100,9 @@ namespace aerial_robot_control
     Eigen::VectorXd target_joint_vel_ = Eigen::VectorXd::Zero(3);;
     Eigen::VectorXd target_joint_acc_ = Eigen::VectorXd::Zero(3);;
     Eigen::MatrixXd Pre_Bpr_ = Eigen::MatrixXd::Zero(3, 6);
+    Eigen::MatrixXd Pre_Bn_ = Eigen::MatrixXd::Zero(6, 6);
     Eigen::VectorXd Pre_Pe_ = Eigen::VectorXd::Zero(3);
+    Eigen::VectorXd Pre_xi_ = Eigen::VectorXd::Zero(9);
     Eigen::VectorXd target_thrust_z_term_;
     Eigen::VectorXd target_thrust_yaw_term_;
     ros::Time time_;
@@ -124,7 +126,7 @@ namespace aerial_robot_control
     virtual void clampGain();
     virtual void publishGain();
 
-    virtual Eigen::MatrixXd getCmatrix(Eigen::MatrixXd Pre_B, Eigen::MatrixXd B, Eigen::VectorXd xi, Eigen::VectorXd pre_xi, double dt);
+    // virtual Eigen::MatrixXd getCmatrix(Eigen::MatrixXd delta_M, Eigen::VectorXd delta_xi,  Eigen::VectorXd xi_dot);
 
     virtual void sendCmd() override;
     virtual void sendFourAxisCommand();

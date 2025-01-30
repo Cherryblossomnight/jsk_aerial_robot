@@ -56,14 +56,14 @@ namespace aerial_robot_control
   protected:
     Eigen::MatrixXd Pre_J_ = Eigen::MatrixXd::Zero(6, 6);
 
-    double rotation_p_, joints_p_, pos_p_, rotation_d_, joints_d_, pos_d_;
+    double roll_pitch_p_, yaw_p_, joints_p_, pos_p_, roll_pitch_d_, yaw_d_, joints_d_, pos_d_;
 
     bool checkRobotModel() override;
     virtual void controlCore() override;
     virtual void rosParamInit() override;
     Eigen::Matrix3d getPositionJacobian(std::string name);
     Eigen::Matrix3d getOrientationJacobian(std::string name);
-    Eigen::MatrixXd HydrusTiltedImpedanceController::getCmatrix(Eigen::MatrixXd Pre_B, Eigen::MatrixXd B, Eigen::VectorXd xi, Eigen::VectorXd pre_xi, double dt) override;
+    Eigen::MatrixXd getCmatrix(Eigen::MatrixXd delta_M, Eigen::VectorXd delta_xi,  Eigen::VectorXd xi_dot);
   };
    
 };

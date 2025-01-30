@@ -44,9 +44,9 @@ if __name__ == "__main__":
     nav_msg.target_vel_z = 0.2
     nav_msg.yaw_nav_mode = 4 
     nav_msg.target_omega_z = 2.0
-    #nav_msg.target_yaw = 1.57
+    nav_msg.target_yaw = 1.57
 
-    #mode_pub.publish(mode)
+    mode_pub.publish(mode)
     pos_pub.publish(pos)
     nav_pub.publish(nav_msg) # go to the origin point
     tf_buffer = tf2_ros.Buffer() 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
     roll, pitch, yaw = euler_from_quaternion(quatenion)
     nav_msg.target_yaw = 3.14 + yaw
     nav_msg.target_pos_y = -transform.transform.translation.y
-    #nav_pub.publish(nav_msg)
+    nav_pub.publish(nav_msg)
 
 
     time.sleep(24)
