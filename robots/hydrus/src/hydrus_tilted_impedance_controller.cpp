@@ -323,9 +323,9 @@ void HydrusTiltedImpedanceController::controlCore()
 
   // std::cout<<target_thrust_z_term_<<std::endl;
 
-  joint_cmd_pubs_[0].publish(j1_term);
-  joint_cmd_pubs_[1].publish(j2_term);
-  joint_cmd_pubs_[2].publish(j3_term);
+  // joint_cmd_pubs_[0].publish(j1_term);
+  // joint_cmd_pubs_[1].publish(j2_term);
+  // joint_cmd_pubs_[2].publish(j3_term);
   Eigen::MatrixXd pe = Rc.inverse() * (Pe - Pc);
   std_msgs::Float64 pe1_term, pe2_term, pe3_term;
 

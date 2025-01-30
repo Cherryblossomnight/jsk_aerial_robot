@@ -83,7 +83,7 @@
         </contact>
         <plugin name="gazebo_ros_bumper_controller" filename="libgazebo_ros_bumper.so">
           <always_on>true</always_on>
-          <robotNamespace>/hydrus</robotNamespace>
+          <robotNamespace>/hydrus_xi</robotNamespace>
           <bumperTopicName>bumper_states</bumperTopicName>
           <frameName>bumper</frameName>
           <visualize>true</visualize>

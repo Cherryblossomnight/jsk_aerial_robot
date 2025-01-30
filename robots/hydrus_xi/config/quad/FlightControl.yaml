@@ -57,8 +57,8 @@ controller:
     gyro_moment_compensation: true
     clamp_gain: true
 
-    roll_pitch_p: 400.0
-    roll_pitch_d: 2500.0
+    roll_pitch_p: 300.0
+    roll_pitch_d: 7000.0
 
     yaw_p: 80.0
     yaw_d: 5.0
