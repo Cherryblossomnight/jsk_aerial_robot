@@ -57,7 +57,7 @@ namespace aerial_robot_control
     
     Eigen::MatrixXd Pre_J_ = Eigen::MatrixXd::Zero(6, 6);
 
-    double rotation_p_, joints_p_, pos_p_, rotation_d_, joints_d_, pos_d_;
+    double roll_pitch_p_, yaw_p_, joints_p_, pos_p_, roll_pitch_d_, yaw_d_, joints_d_, pos_d_;
 
     bool checkRobotModel() override;
     virtual void controlCore() override;

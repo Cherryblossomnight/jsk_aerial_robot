@@ -183,7 +183,6 @@ namespace aerial_robot_control
     double ctrl_loop_du_;
     double control_timestamp_;
     int motor_num_;
-    int joint_num_;
     int uav_model_;
 
     double m_f_rate_;

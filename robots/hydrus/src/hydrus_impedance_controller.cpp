@@ -163,7 +163,8 @@ void HydrusImpedanceController::controlCore()
   // Here Bx = uav_mass and Cx = -Bx
   // See Exploiting Redundancy in Cartesian Impedance Control of UAVs  Equipped with a Robotic Arm, Equation (10)
 
-  Kp.block(0, 0, 3, 3) = rotation_p_ * Eigen::Matrix3d::Identity();
+  Kp.block(0, 0, 2, 2) = roll_pitch_p_ * Eigen::Matrix2d::Identity();
+  Kp(2, 2) = yaw_p_;
   if (mode_.data == 1)
     Kp.block(3, 3, 3, 3) = joints_p_ * Eigen::Matrix3d::Identity();
   else
@@ -253,7 +254,8 @@ void HydrusImpedanceController::controlCore()
 
 
   //Kd.block(0, 0, 3, 3) = -Cx.block(0, 0, 3, 3) + 2 * 0.9 * (Kp.block(0, 0, 3, 3) * abs(Bx(2, 2))).sqrt();
-  Kd.block(0, 0, 3, 3) = rotation_d_ * Eigen::Matrix3d::Identity();
+  Kd.block(0, 0, 2, 2) = roll_pitch_d_ * Eigen::Matrix2d::Identity();
+  Kd(2, 2) = yaw_d_;
   if (mode_.data == 1)
     Kd.block(3, 3, 3, 3) = joints_d_ * Eigen::Matrix3d::Identity();
   else
@@ -262,7 +264,7 @@ void HydrusImpedanceController::controlCore()
 
   //Kd = -Cx + 2 * 1.0 * (Kp * Sigma).sqrt();
 
-  std::cout<<"x: "<<x<<std::endl;
+ // std::cout<<"x: "<<x<<std::endl;
 
   // Exploiting Redundancy in Cartesian Impedance Control of UAVs Equipped with a Robotic Arm, Equation (9)
   u = J.transpose() * (Bx * x_d_ddot + Cx * x_d_dot + Kd * x_dot + Kp * x);
@@ -349,10 +351,12 @@ void HydrusImpedanceController::rosParamInit()
 
   ros::NodeHandle param_nh(nh_, "controller/impedance");
 
-  getParam<double>(param_nh, "rotation_p", rotation_p_, 30.0);
+  getParam<double>(param_nh, "roll_pitch_p", roll_pitch_p_, 30.0);
+  getParam<double>(param_nh, "yaw_p", yaw_p_, 30.0);
   getParam<double>(param_nh, "joints_p", joints_p_, 15.0);
   getParam<double>(param_nh, "pos_p", pos_p_, 10.0);
-  getParam<double>(param_nh, "rotation_d", rotation_d_,30.0);
+  getParam<double>(param_nh, "roll_pitch_d", roll_pitch_d_, 30.0);
+  getParam<double>(param_nh, "yaw_d", yaw_d_, 30.0);
   getParam<double>(param_nh, "joints_d", joints_d_, 5.0);
   getParam<double>(param_nh, "pos_d", pos_d_, 4.0);
 }
