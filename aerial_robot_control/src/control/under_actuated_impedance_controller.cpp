@@ -40,9 +40,9 @@ using namespace aerial_robot_control;
 UnderActuatedImpedanceController::UnderActuatedImpedanceController():
   target_roll_(0), target_pitch_(0), candidate_yaw_term_(0)
 {
-  lqi_roll_pitch_weight_.setZero();
-  lqi_yaw_weight_.setZero();
-  lqi_z_weight_.setZero();
+  roll_pitch_weight_.setZero();
+  yaw_weight_.setZero();
+  z_weight_.setZero();
 }
 
 
@@ -285,9 +285,9 @@ bool UnderActuatedImpedanceController::optimalGain()
 
   for(int i = 0; i < motor_num_; ++i)
     {
-      roll_gains_.at(i) = Eigen::Vector3d(P_inv(i,3) * lqi_roll_pitch_weight_(0),  0, P_inv(i,3) * lqi_roll_pitch_weight_(2));
-      pitch_gains_.at(i) = Eigen::Vector3d(P_inv(i,4) * lqi_roll_pitch_weight_(0), 0, P_inv(i,4) * lqi_roll_pitch_weight_(2));
-      yaw_gains_.at(i) = Eigen::Vector3d(P_inv(i,5) * lqi_yaw_weight_(0), 0, P_inv(i,5) * lqi_yaw_weight_(2));
+      roll_gains_.at(i) = Eigen::Vector3d(P_inv(i,3) * roll_pitch_weight_(0),  0, P_inv(i,3) * roll_pitch_weight_(2));
+      pitch_gains_.at(i) = Eigen::Vector3d(P_inv(i,4) * roll_pitch_weight_(0), 0, P_inv(i,4) * roll_pitch_weight_(2));
+      yaw_gains_.at(i) = Eigen::Vector3d(P_inv(i,5) * yaw_weight_(0), 0, P_inv(i,5) * yaw_weight_(2));
 
     }
 
@@ -363,6 +363,7 @@ void UnderActuatedImpedanceController::rosParamInit()
 {
   ros::NodeHandle control_nh(nh_, "controller");
   ros::NodeHandle lqi_nh(control_nh, "lqi");
+  ros::NodeHandle imp_nh(control_nh, "impedance");
   getParam<bool>(lqi_nh, "clamp_gain", clamp_gain_, true);
   getParam<bool>(lqi_nh, "realtime_update", realtime_update_, false);
   getParam<bool>(lqi_nh, "gyro_moment_compensation", gyro_moment_compensation_, false);
@@ -376,15 +377,15 @@ void UnderActuatedImpedanceController::rosParamInit()
     getParam<double>(lqi_nh, std::string("r") + ss.str(), r_.at(i), 1.0);
   }
 
-  getParam<double>(lqi_nh, "roll_pitch_p", lqi_roll_pitch_weight_[0], 1.0);
-  getParam<double>(lqi_nh, "roll_pitch_i", lqi_roll_pitch_weight_[1], 1.0);
-  getParam<double>(lqi_nh, "roll_pitch_d", lqi_roll_pitch_weight_[2], 1.0);
-  getParam<double>(lqi_nh, "yaw_p", lqi_yaw_weight_[0], 1.0);
-  getParam<double>(lqi_nh, "yaw_i", lqi_yaw_weight_[1], 1.0);
-  getParam<double>(lqi_nh, "yaw_d", lqi_yaw_weight_[2], 1.0);
-  getParam<double>(lqi_nh, "z_p", lqi_z_weight_[0], 1.0);
-  getParam<double>(lqi_nh, "z_i", lqi_z_weight_[1], 1.0);
-  getParam<double>(lqi_nh, "z_d", lqi_z_weight_[2], 1.0);
+  getParam<double>(imp_nh, "roll_pitch_p", roll_pitch_weight_[0], 1.0);
+  getParam<double>(imp_nh, "roll_pitch_i", roll_pitch_weight_[1], 1.0);
+  getParam<double>(imp_nh, "roll_pitch_d", roll_pitch_weight_[2], 1.0);
+  getParam<double>(imp_nh, "yaw_p", yaw_weight_[0], 1.0);
+  getParam<double>(imp_nh, "yaw_i", yaw_weight_[1], 1.0);
+  getParam<double>(imp_nh, "yaw_d", yaw_weight_[2], 1.0);
+  getParam<double>(imp_nh, "z_p", z_weight_[0], 1.0);
+  getParam<double>(imp_nh, "z_i", z_weight_[1], 1.0);
+  getParam<double>(imp_nh, "z_d", z_weight_[2], 1.0);
   
 }
 
@@ -417,40 +418,40 @@ void UnderActuatedImpedanceController::cfgLQICallback(aerial_robot_control::LQIC
       switch(level)
         {
         case Levels::RECONFIGURE_LQI_ROLL_PITCH_P:
-          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of roll and pitch from " << lqi_roll_pitch_weight_.x() <<  " to "  << config.roll_pitch_p);
-          lqi_roll_pitch_weight_.x() = config.roll_pitch_p;
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of roll and pitch from " << roll_pitch_weight_.x() <<  " to "  << config.roll_pitch_p);
+          roll_pitch_weight_.x() = config.roll_pitch_p;
           break;
         case Levels::RECONFIGURE_LQI_ROLL_PITCH_I:
-          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of roll and pitch from " << lqi_roll_pitch_weight_.y() <<  " to "  << config.roll_pitch_i);
-          lqi_roll_pitch_weight_.y() = config.roll_pitch_i;
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of roll and pitch from " << roll_pitch_weight_.y() <<  " to "  << config.roll_pitch_i);
+          roll_pitch_weight_.y() = config.roll_pitch_i;
           break;
         case Levels::RECONFIGURE_LQI_ROLL_PITCH_D:
-          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of roll and pitch from " << lqi_roll_pitch_weight_.z() <<  " to "  << config.roll_pitch_d);
-          lqi_roll_pitch_weight_.z() = config.roll_pitch_d;
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of roll and pitch from " << roll_pitch_weight_.z() <<  " to "  << config.roll_pitch_d);
+          roll_pitch_weight_.z() = config.roll_pitch_d;
           break;
         case Levels::RECONFIGURE_LQI_YAW_P:
-          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of yaw from " << lqi_yaw_weight_.x() <<  " to "  << config.yaw_p);
-          lqi_yaw_weight_.x() = config.yaw_p;
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of yaw from " << yaw_weight_.x() <<  " to "  << config.yaw_p);
+          yaw_weight_.x() = config.yaw_p;
           break;
         case Levels::RECONFIGURE_LQI_YAW_I:
-          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of yaw from " << lqi_yaw_weight_.y() <<  " to "  << config.yaw_i);
-          lqi_yaw_weight_.y() = config.yaw_i;
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of yaw from " << yaw_weight_.y() <<  " to "  << config.yaw_i);
+          yaw_weight_.y() = config.yaw_i;
           break;
         case Levels::RECONFIGURE_LQI_YAW_D:
-          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of yaw from " << lqi_yaw_weight_.z() <<  " to "  << config.yaw_d);
-          lqi_yaw_weight_.z() = config.yaw_d;
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of yaw from " << yaw_weight_.z() <<  " to "  << config.yaw_d);
+          yaw_weight_.z() = config.yaw_d;
           break;
         case Levels::RECONFIGURE_LQI_Z_P:
-          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of z from " << lqi_z_weight_.x() <<  " to "  << config.z_p);
-          lqi_z_weight_.x() = config.z_p;
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the p gain weight of z from " << z_weight_.x() <<  " to "  << config.z_p);
+          z_weight_.x() = config.z_p;
           break;
         case Levels::RECONFIGURE_LQI_Z_I:
-          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of z from " << lqi_z_weight_.y() <<  " to "  << config.z_i);
-          lqi_z_weight_.y() = config.z_i;
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the i gain weight of z from " << z_weight_.y() <<  " to "  << config.z_i);
+          z_weight_.y() = config.z_i;
           break;
         case Levels::RECONFIGURE_LQI_Z_D:
-          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of z from " << lqi_z_weight_.z() <<  " to "  << config.z_d);
-          lqi_z_weight_.z() = config.z_d;
+          //ROS_INFO_STREAM_NAMED("LQI gain generator", "LQI gain generator: change the d gain weight of z from " << z_weight_.z() <<  " to "  << config.z_d);
+          z_weight_.z() = config.z_d;
           break;
         default :
           break;

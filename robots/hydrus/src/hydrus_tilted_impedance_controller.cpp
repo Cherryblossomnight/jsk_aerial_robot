@@ -256,7 +256,7 @@ void HydrusTiltedImpedanceController::controlCore()
 
   //Kd.block(0, 0, 3, 3) = -Cx.block(0, 0, 3, 3) + 2 * 0.9 * (Kp.block(0, 0, 3, 3) * abs(Bx(2, 2))).sqrt();
   Kd.block(0, 0, 2, 2) = roll_pitch_d_ * Eigen::Matrix2d::Identity();
-    Kd(2, 2) = yaw_d_;
+  Kd(2, 2) = yaw_d_;
   if (mode_.data == 1)
     Kd.block(3, 3, 3, 3) = pos_d_ * Eigen::Matrix3d::Identity();
   else
@@ -311,7 +311,7 @@ void HydrusTiltedImpedanceController::controlCore()
   j1_term.data = u(3) - f1[1] * target_thrust_z_term_[0] * 0.3;
   j2_term.data = u(4) - f2[1] * target_thrust_z_term_[1] * 0.3 - f3[1] * target_thrust_z_term_[0] * (0.6 + 0.3 * abs(cos(joint_pos_[0])));
   j3_term.data = u(5) - f4[1] * target_thrust_z_term_[3] * 0.3;
-  std::cout<<"u1"<<Bx * x_d_ddot<<std::endl;
+  std::cout<<"u1"<<x_dot<<std::endl;
   std::cout<<"u2"<<Cx * x_d_dot<<std::endl;
   std::cout<<"u3"<<Kd * x_dot<<std::endl;
   std::cout<<"u4"<<Kp * x<<std::endl;
@@ -323,9 +323,9 @@ void HydrusTiltedImpedanceController::controlCore()
 
   // std::cout<<target_thrust_z_term_<<std::endl;
 
-  // joint_cmd_pubs_[0].publish(j1_term);
-  // joint_cmd_pubs_[1].publish(j2_term);
-  // joint_cmd_pubs_[2].publish(j3_term);
+  joint_cmd_pubs_[0].publish(j1_term);
+  joint_cmd_pubs_[1].publish(j2_term);
+  joint_cmd_pubs_[2].publish(j3_term);
   Eigen::MatrixXd pe = Rc.inverse() * (Pe - Pc);
   std_msgs::Float64 pe1_term, pe2_term, pe3_term;
 

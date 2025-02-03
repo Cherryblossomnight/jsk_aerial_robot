@@ -18,7 +18,7 @@ if __name__ == "__main__":
     rospy.init_node("rod_in_hole")
 
     link_num = rospy.get_param("~link_num", 4)
-    duration = rospy.get_param("~duration", 0.05)
+    duration = rospy.get_param("~duration", 0.005)
     joint_pub = rospy.Publisher("/hydrus_xi/joints_ctrl", JointState, queue_size=1)
     mode_pub = rospy.Publisher("/hydrus_xi/imp_mode", UInt8, queue_size=1)
     pos_pub = rospy.Publisher("/hydrus_xi/pos_cmds", Point, queue_size=1)
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     joints.position = [1.215, -0.265, 1.048]
     nav_msg = FlightNav()
     nav_msg.pos_xy_nav_mode = 4 # pos_vel mode
-    nav_msg.target_pos_x = -0.3
+    nav_msg.target_pos_x = -0.25
     nav_msg.target_vel_x = -0.2
     nav_msg.target_pos_y = 0.0
     nav_msg.target_vel_y = -0.2
@@ -49,16 +49,13 @@ if __name__ == "__main__":
     nav_msg.target_omega_z = 2.0
     nav_msg.target_yaw = 1.57
 
-    #mode_pub.publish(mode)
+    mode_pub.publish(mode)
     pos_pub.publish(pos)
     joint_pub.publish(joints)
     nav_pub.publish(nav_msg) # go to the origin point
     tf_buffer = tf2_ros.Buffer() 
     tf_listener = tf2_ros.TransformListener(tf_buffer) 
     
-
-    
-  
  
 
     time.sleep(8)
@@ -68,6 +65,7 @@ if __name__ == "__main__":
     quatenion = [transform.transform.rotation.x, transform.transform.rotation.y, transform.transform.rotation.z, transform.transform.rotation.w]
     roll, pitch, yaw = euler_from_quaternion(quatenion)
     nav_msg.target_yaw = 3.14 + yaw
+    nav_msg.target_omega_z = 0.3
     nav_msg.target_pos_y = -transform.transform.translation.y
     nav_pub.publish(nav_msg)
 
@@ -80,7 +78,7 @@ if __name__ == "__main__":
         nav_msg = FlightNav()
 
         nav_msg.pos_xy_nav_mode = 1 # pos_vel mode
-        nav_msg.target_vel_x = -0.005
+        nav_msg.target_vel_x = -0.03
 
         nav_pub.publish(nav_msg)
         #     nav_msg.target_pos_y = 1.25   # to right

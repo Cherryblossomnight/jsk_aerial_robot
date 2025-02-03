@@ -29,6 +29,7 @@ controller:
     limit_p: 15.0
     limit_i: 15.0
     limit_d: 15.0
+    need_d_control: true
 
   # LQI gain generator
   lqi:
@@ -58,10 +59,10 @@ controller:
     clamp_gain: true
 
     roll_pitch_p: 300.0
-    roll_pitch_d: 7000.0
+    roll_pitch_d: 30.0
 
-    yaw_p: 80.0
-    yaw_d: 5.0
+    yaw_p: 40.0
+    yaw_d: 4.0
 
     joints_p: 13.0
     joints_d: 2.0

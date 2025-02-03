@@ -362,7 +362,7 @@ void ServoBridge::servoCtrlCallback(const sensor_msgs::JointStateConstPtr& servo
             {
               std_msgs::Float64 msg;
               msg.data = servo_ctrl_msg->position[i];
-              //if (servo_group_name == "gimbals")
+              if (servo_group_name == "gimbals")
                 servo_ctrl_sim_pubs_[servo_group_name].at(i).publish(msg);
             }
         }

@@ -83,7 +83,7 @@ namespace aerial_robot_control
     bool clamp_gain_;
     Eigen::MatrixXd K_;
 
-    Eigen::Vector3d lqi_roll_pitch_weight_, lqi_yaw_weight_, lqi_z_weight_;
+    Eigen::Vector3d roll_pitch_weight_, yaw_weight_, z_weight_;
     std::vector<double> r_; // matrix R
 
     std::vector<Eigen::Vector3d> pitch_gains_, roll_gains_, yaw_gains_, z_gains_;

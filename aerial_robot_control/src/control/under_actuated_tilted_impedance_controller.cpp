@@ -114,6 +114,7 @@ void UnderActuatedTiltedImpedanceController::controlCore()
     }
 
   // special process for yaw since the bandwidth between PC and spinal
+  std::cout<<"P"<<robot_model_->calcWrenchMatrixOnCoG()<<std::endl;
   candidate_yaw_term_ = target_thrust_yaw_term_(0);
 
 }
@@ -123,14 +124,12 @@ bool UnderActuatedTiltedImpedanceController::optimalGain()
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
   Eigen::MatrixXd P_inv = aerial_robot_model::pseudoinverse(P);
 
-  // std::cout<<"P"<<P<<std::endl;
-
 
   for(int i = 0; i < motor_num_; ++i)
     {
-      roll_gains_.at(i) = Eigen::Vector3d(P_inv(i,3) * lqi_roll_pitch_weight_(0),  0, P_inv(i,3) * lqi_roll_pitch_weight_(2));
-      pitch_gains_.at(i) = Eigen::Vector3d(P_inv(i,4) * lqi_roll_pitch_weight_(0), 0, P_inv(i,4) * lqi_roll_pitch_weight_(2));
-      yaw_gains_.at(i) = Eigen::Vector3d(P_inv(i,5) * lqi_yaw_weight_(0), 0, P_inv(i,5) * lqi_yaw_weight_(2));
+      roll_gains_.at(i) = Eigen::Vector3d(P_inv(i,3) * roll_pitch_weight_(0),  0, P_inv(i,3) * roll_pitch_weight_(2));
+      pitch_gains_.at(i) = Eigen::Vector3d(P_inv(i,4) * roll_pitch_weight_(0), 0, P_inv(i,4) * roll_pitch_weight_(2));
+      yaw_gains_.at(i) = Eigen::Vector3d(P_inv(i,5) * yaw_weight_(0), 0, P_inv(i,5) * yaw_weight_(2));
 
     }
 
