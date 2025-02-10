@@ -374,6 +374,14 @@ namespace aerial_robot_model {
         if(verbose_) ROS_WARN(" %s : [%f, %f, %f]", rotor.c_str(), f.p.x(), f.p.y(), f.p.z());
         rotors_origin_from_cog.push_back((cog.Inverse() * f).p);
         rotors_normal_from_cog.push_back((cog.Inverse() * f).M * KDL::Vector(0, 0, 1));
+        // std::cout<<"ttt"<<std::endl;
+        //       std::cout<<baselink_<<std::endl;
+        // std::cout<<aerial_robot_model::kdlToEigen(f_baselink.M)<<std::endl;
+        
+        // std::cout<<aerial_robot_model::kdlToEigen(cog.M)<<std::endl;
+        // std::cout<<aerial_robot_model::kdlToEigen((cog.Inverse() * f).p)<<std::endl;
+        // std::cout<<aerial_robot_model::kdlToEigen((cog.Inverse() * f).M * KDL::Vector(0, 0, 1))<<std::endl;
+   
       }
     setRotorsNormalFromCog(rotors_normal_from_cog);
     setRotorsOriginFromCog(rotors_origin_from_cog);
@@ -452,6 +460,7 @@ namespace aerial_robot_model {
       Q.block(0, i, 3, 1) = u.at(i);
       Q.block(3, i, 3, 1) = p.at(i).cross(u.at(i)) + m_f_rate * sigma.at(i + 1) * u.at(i);
     }
+
     return Q;
   }
 

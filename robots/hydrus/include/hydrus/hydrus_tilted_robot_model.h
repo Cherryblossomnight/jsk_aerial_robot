@@ -47,6 +47,13 @@ public:
 
   virtual void calcStaticThrust() override;
 
+  Eigen::MatrixXd getJacobian(const KDL::JntArray& joint_positions, std::string segment_name, KDL::Vector offset = KDL::Vector::Zero()) override;
+  void calcCoGMomentumJacobian() override;
+  void updateJacobians(const KDL::JntArray& joint_positions, bool update_model = true) override;
+
+ 
 private:
   void updateRobotModelImpl(const KDL::JntArray& joint_positions) override;
+
+  Eigen::MatrixXd gimbal_jacobian_;
 };
