@@ -143,7 +143,7 @@
       <child link="end_effector"/>
       <origin rpy="0 0 0" xyz="${link_length} 0 0"/>
   </joint>
-<!-- 
+
 
   <link name="end_effector">
     <inertial>
@@ -166,8 +166,8 @@
           <sphere radius="0.02"/>
         </geometry>
       </visual>
-  </link> -->
-
+  </link> 
+<!-- 
   <link name="end_effector">
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 1.57"/>
@@ -189,7 +189,7 @@
           <cylinder length="0.6" radius="0.01"/>
         </geometry>
       </visual>
-  </link>
+  </link> -->
 
 
   <gazebo reference="end_effector">

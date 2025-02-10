@@ -114,7 +114,7 @@ void UnderActuatedTiltedImpedanceController::controlCore()
     }
 
   // special process for yaw since the bandwidth between PC and spinal
-  std::cout<<"P"<<robot_model_->calcWrenchMatrixOnCoG()<<std::endl;
+  //std::cout<<"P"<<robot_model_->calcWrenchMatrixOnCoG()<<std::endl;
   candidate_yaw_term_ = target_thrust_yaw_term_(0);
 
 }

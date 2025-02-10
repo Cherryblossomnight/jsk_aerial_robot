@@ -66,7 +66,6 @@ void HydrusRobotModel::calcFeasibleControlRollPitchDistsJacobian()
   const double epsilon = getEpsilon();
 
   fc_rp_dists_jacobian_.resize(rotor_num, 6 + joint_num);
-
   auto v = calcV();
   for (auto& v_i: v) v_i.z() = 0; // 2D
 
@@ -75,19 +74,16 @@ void HydrusRobotModel::calcFeasibleControlRollPitchDistsJacobian()
     v_jacobians.push_back(-skew(u.at(i)) * p_jacobians.at(i) + skew(p.at(i)) * u_jacobians.at(i) + m_f_rate * sigma.at(i + 1) * u_jacobians.at(i));
     v_jacobians.back().row(2).setZero(); // 2D
   }
-
   for (int i = 0; i < rotor_num; ++i)
     {
       const Eigen::Vector3d& v_i = v.at(i);
       const Eigen::Vector3d v_i_normalized = v.at(i).normalized();
       const Eigen::MatrixXd& d_v_i = v_jacobians.at(i);
-
       double approx_dist = 0.0;
       Eigen::MatrixXd d_dist = Eigen::MatrixXd::Zero(1, ndof);
       for (int j = 0; j < rotor_num; ++j)
         {
           if (i == j) continue;
-
           const Eigen::Vector3d& v_j = v.at(j);
           const Eigen::MatrixXd& d_v_j = v_jacobians.at(j);
           const double v_cross_product = (v_j.cross(v_i_normalized)).z();
@@ -95,7 +91,6 @@ void HydrusRobotModel::calcFeasibleControlRollPitchDistsJacobian()
           approx_dist += reluApprox(v_cross_product * thrust_max, epsilon);
           d_dist += sigmoid(v_cross_product * thrust_max, epsilon) * d_v_cross_product.row(2) * thrust_max;
         } //j
-
       approx_fc_rp_dists_(i) = approx_dist;
       fc_rp_dists_jacobian_.row(i) = d_dist;
     } //i

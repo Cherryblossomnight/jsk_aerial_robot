@@ -13,13 +13,10 @@ Eigen::MatrixXd RobotModel::getJacobian(const KDL::JntArray& joint_positions, st
   KDL::Jacobian jac(tree.getNrOfJoints());
   int status = solver.JntToJac(joint_positions, jac, segment_name);
   jac.changeRefPoint(seg_frames.at(segment_name).M * offset);
-
   // joint part
   Eigen::MatrixXd jac_joint = convertJacobian(jac.data);
   // return jac_joint; // only joint jacobian
   // std::cout<<segment_name<<std::endl;
-  // std::cout<<jac_joint<<std::endl;
-
   if (jacobians_map_.find(segment_name) != jacobians_map_.end()) 
     jacobians_map_.at(segment_name) = jac_joint;
   else

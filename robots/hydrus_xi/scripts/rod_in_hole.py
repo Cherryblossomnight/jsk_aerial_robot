@@ -49,7 +49,7 @@ if __name__ == "__main__":
     nav_msg.target_omega_z = 2.0
     nav_msg.target_yaw = 1.57
 
-    mode_pub.publish(mode)
+    #mode_pub.publish(mode)
     pos_pub.publish(pos)
     joint_pub.publish(joints)
     nav_pub.publish(nav_msg) # go to the origin point

@@ -295,15 +295,15 @@ void HydrusTiltedImpedanceController::controlCore()
   target_thrust_yaw_term_ =  P_inv.col(5) * u(2); 
   std_msgs::Float64 j1_term, j2_term, j3_term;
 
-  std::cout<<"P"<<P<<std::endl;
-  std::cout<<"P_inv'"<<P_inv<<std::endl;
+  //std::cout<<"P"<<P<<std::endl;
+  //std::cout<<"P_inv'"<<P_inv<<std::endl;
 
   Eigen::VectorXd f1 = R1.inverse()*Rc*P.block(0, 0, 3, 1);
   Eigen::VectorXd f2 = R2.inverse()*Rc*P.block(0, 1, 3, 1);
   Eigen::VectorXd f3 = R2.inverse()*Rc*P.block(0, 0, 3, 1);
   Eigen::VectorXd f4 = R4.inverse()*Rc*P.block(0, 3, 3, 1);
 
-  std::cout<<"J.transpose()"<<J.transpose()<<std::endl;
+  //std::cout<<"J.transpose()"<<J.transpose()<<std::endl;
 
   // j1_term.data = u(3);
   // j2_term.data = u(4);
@@ -323,9 +323,9 @@ void HydrusTiltedImpedanceController::controlCore()
 
   // std::cout<<target_thrust_z_term_<<std::endl;
 
-  joint_cmd_pubs_[0].publish(j1_term);
-  joint_cmd_pubs_[1].publish(j2_term);
-  joint_cmd_pubs_[2].publish(j3_term);
+  // joint_cmd_pubs_[0].publish(j1_term);
+  // joint_cmd_pubs_[1].publish(j2_term);
+  // joint_cmd_pubs_[2].publish(j3_term);
   Eigen::MatrixXd pe = Rc.inverse() * (Pe - Pc);
   std_msgs::Float64 pe1_term, pe2_term, pe3_term;
 

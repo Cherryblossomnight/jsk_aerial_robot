@@ -85,7 +85,7 @@ void UnderActuatedTiltedLQIController::controlCore()
   double max_term = target_thrust_z_term.cwiseAbs().maxCoeff(&index);
   double residual = max_term - z_limit_;
 
-  std::cout<<"P"<<robot_model_->calcWrenchMatrixOnCoG()<<std::endl;
+  //std::cout<<"P"<<robot_model_->calcWrenchMatrixOnCoG()<<std::endl;
 
   if(residual > 0)
     {
