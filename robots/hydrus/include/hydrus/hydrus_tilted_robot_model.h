@@ -48,12 +48,34 @@ public:
   virtual void calcStaticThrust() override;
 
   Eigen::MatrixXd getJacobian(const KDL::JntArray& joint_positions, std::string segment_name, KDL::Vector offset = KDL::Vector::Zero()) override;
+
   void calcCoGMomentumJacobian() override;
   void updateJacobians(const KDL::JntArray& joint_positions, bool update_model = true) override;
 
- 
+  template <class T> T getGimbalProcessedJoint();
+
 private:
   void updateRobotModelImpl(const KDL::JntArray& joint_positions) override;
 
+  void gimbalsCtrlCallback(const sensor_msgs::JointStateConstPtr& gimbals_ctrl_msg);
+
+  ros::Subscriber gimbals_sub_;
+
   Eigen::MatrixXd gimbal_jacobian_;
+
+  KDL::JntArray gimbal_processed_joint_;
+  std::mutex gimbal_processed_joint_mutex_;
+  std::vector<KDL::Rotation> gimbal_rotation_from_link_;
+
 };
+
+template<> inline KDL::JntArray HydrusTiltedRobotModel::getGimbalProcessedJoint()
+{
+  std::lock_guard<std::mutex> lock(gimbal_processed_joint_mutex_);
+  return gimbal_processed_joint_;
+}
+
+template<> inline sensor_msgs::JointState HydrusTiltedRobotModel::getGimbalProcessedJoint()
+{
+  return kdlJointToMsg(getGimbalProcessedJoint<KDL::JntArray>());
+}

@@ -3,12 +3,12 @@
 HydrusTiltedRobotModel::HydrusTiltedRobotModel(bool init_with_rosparam, bool verbose, double fc_t_min_thre, double epsilon):
   HydrusRobotModel(init_with_rosparam, verbose, fc_t_min_thre, 0, epsilon, 4)
 {
-
+  const int rotor_num = getRotorNum();
   const auto& joint_indices = getJointIndices();
   const auto& link_joint_indices = getLinkJointIndices();
   gimbal_jacobian_ = Eigen::MatrixXd::Zero(6 + getJointNum(), 6 + getLinkJointIndices().size());
   gimbal_jacobian_.topLeftCorner(6,6) = Eigen::MatrixXd::Identity(6,6);
-
+  gimbal_rotation_from_link_.resize(rotor_num);
   int j = 0;
   for(int i = 0; i < joint_indices.size(); i++)
     {
@@ -33,9 +33,8 @@ void HydrusTiltedRobotModel::calcStaticThrust()
 
   Eigen::VectorXd static_thrust = aerial_robot_model::pseudoinverse(wrench_mat_on_cog.middleRows(2, 4)) * getGravity().segment(2,4) * getMass();
   std::cout<<"th"<<static_thrust<<std::endl;
-    std::cout<<"cog"<<wrench_mat_on_cog.middleRows(2, 4)<<std::endl;
-    std::cout<<"cog"<<aerial_robot_model::pseudoinverse(wrench_mat_on_cog.middleRows(2, 4))<<std::endl;
-      std::cout<<"g"<<getGravity().segment(2,4)<<std::endl;
+    // std::cout<<"cog"<<wrench_mat_on_cog.middleRows(2, 4)<<std::endl;
+    // std::cout<<"cog"<<aerial_robot_model::pseudoinverse(wrench_mat_on_cog.middleRows(2, 4))<<std::endl;
   setStaticThrust(static_thrust);
 
  
@@ -51,6 +50,28 @@ Eigen::MatrixXd HydrusTiltedRobotModel::getJacobian(const KDL::JntArray& joint_p
 
 void HydrusTiltedRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_positions)
 {
+  // std::cout<<"first";
+  //   for (int i = 0; i < getJointPositions().data.size(); i++)
+  //       std::cout<<getJointPositions()(i)<<" ";
+  //      std::cout<<"second";
+  //         for (int i = 0; i < joint_positions.data.size(); i++)
+  //       std::cout<<joint_positions(i)<<" ";
+  // KDL::TreeFkSolverPos_recursive fk_solver(getTree());
+
+  // /* special process */
+  // const auto joint_index_map = getJointIndexMap();
+  // gimbal_processed_joint_ = joint_positions;
+
+  // for(int i = 0; i < getRotorNum(); ++i)
+  // {
+  //   std::string s = std::to_string(i + 1);
+  //   if (!gimbals_angle_.name.empty())
+  //   {
+  //     std::cout<<"gimbal yaw"<<i<<" "<<gimbals_angle_.position[i]<<std::endl;
+  //     gimbal_processed_joint_(joint_index_map.find(std::string("gimbal") + s)->second) = gimbals_angle_.position[i];
+  //   }
+  // }
+
   aerial_robot_model::RobotModel::updateRobotModelImpl(joint_positions);
 
   if(getStaticThrust().minCoeff() < 0)
@@ -65,7 +86,6 @@ void HydrusTiltedRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_pos
 
   double f_norm_roll = atan2(f(1), f(2));
   double f_norm_pitch = atan2(-f(0), sqrt(f(1)*f(1) + f(2)*f(2)));
-
   /* set the hoverable frame as CoG and reupdate model */
   setCogDesireOrientation(f_norm_roll, f_norm_pitch, 0);
   HydrusRobotModel::updateRobotModelImpl(joint_positions);
@@ -147,6 +167,7 @@ void HydrusTiltedRobotModel::updateJacobians(const KDL::JntArray& joint_position
   setFeasibleControlRollPitchDistsJacobian(fc_rp_dists_jacobian * gimbal_jacobian_);
 
 }
+
 
 
 /* plugin registration */

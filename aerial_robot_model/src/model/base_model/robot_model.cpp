@@ -355,6 +355,7 @@ namespace aerial_robot_model {
 
     /* CoG */
     KDL::Frame f_baselink = seg_tf_map.at(baselink_);
+  
     KDL::Frame cog;
     cog.M = f_baselink.M * cog_desire_orientation_.Inverse();
     cog.p = link_inertia.getCOG();
@@ -375,9 +376,15 @@ namespace aerial_robot_model {
         rotors_origin_from_cog.push_back((cog.Inverse() * f).p);
         rotors_normal_from_cog.push_back((cog.Inverse() * f).M * KDL::Vector(0, 0, 1));
         // std::cout<<"ttt"<<std::endl;
-        //       std::cout<<baselink_<<std::endl;
+        // std::cout<<baselink_<<std::endl;
         // std::cout<<aerial_robot_model::kdlToEigen(f_baselink.M)<<std::endl;
+        // std::cout<<aerial_robot_model::kdlToEigen(cog_desire_orientation_.Inverse())<<std::endl; 
+        // std::cout<<aerial_robot_model::kdlToEigen(f.M)<<std::endl;
+        // std::cout<<aerial_robot_model::kdlToEigen((cog.Inverse() * f).M)<<std::endl; 
+        // std::cout<<aerial_robot_model::kdlToEigen((cog.Inverse() * f).p)<<std::endl;
+        // std::cout<<aerial_robot_model::kdlToEigen((cog.Inverse() * f).M * KDL::Vector(0, 0, 1))<<std::endl; 
         
+        // std::cout<<aerial_robot_model::kdlToEigen(cog.M)<<std::endl; 
         // std::cout<<aerial_robot_model::kdlToEigen(cog.M)<<std::endl;
         // std::cout<<aerial_robot_model::kdlToEigen((cog.Inverse() * f).p)<<std::endl;
         // std::cout<<aerial_robot_model::kdlToEigen((cog.Inverse() * f).M * KDL::Vector(0, 0, 1))<<std::endl;
