@@ -134,12 +134,6 @@ void HydrusLikeRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_posit
       gimbal_nominal_angles_[i * 2] = -r;
       gimbal_nominal_angles_[i * 2 + 1] = -p;
     }
-     std::cout<<"first";
-    for (int i = 0; i < joint_positions.data.size(); i++)
-        std::cout<<joint_positions(i)<<" ";
-             std::cout<<"second";
-          for (int i = 0; i < gimbal_processed_joint_.data.size(); i++)
-        std::cout<<gimbal_processed_joint_(i)<<" ";
 
   /* normal robot model update */
   HydrusRobotModel::updateRobotModelImpl(gimbal_processed_joint_);

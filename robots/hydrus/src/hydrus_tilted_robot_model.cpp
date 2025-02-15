@@ -32,9 +32,9 @@ void HydrusTiltedRobotModel::calcStaticThrust()
   Eigen::MatrixXd wrench_mat_on_cog = calcWrenchMatrixOnCoG();
 
   Eigen::VectorXd static_thrust = aerial_robot_model::pseudoinverse(wrench_mat_on_cog.middleRows(2, 4)) * getGravity().segment(2,4) * getMass();
-  std::cout<<"th"<<static_thrust<<std::endl;
-    // std::cout<<"cog"<<wrench_mat_on_cog.middleRows(2, 4)<<std::endl;
-    // std::cout<<"cog"<<aerial_robot_model::pseudoinverse(wrench_mat_on_cog.middleRows(2, 4))<<std::endl;
+  // std::cout<<"th"<<static_thrust<<std::endl;
+  //   std::cout<<"cog"<<wrench_mat_on_cog.middleRows(2, 4)<<std::endl;
+  //   std::cout<<"cog"<<aerial_robot_model::pseudoinverse(wrench_mat_on_cog.middleRows(2, 4))<<std::endl;
   setStaticThrust(static_thrust);
 
  
@@ -53,9 +53,9 @@ void HydrusTiltedRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_pos
   // std::cout<<"first";
   //   for (int i = 0; i < getJointPositions().data.size(); i++)
   //       std::cout<<getJointPositions()(i)<<" ";
-  //      std::cout<<"second";
-  //         for (int i = 0; i < joint_positions.data.size(); i++)
-  //       std::cout<<joint_positions(i)<<" ";
+      //  std::cout<<"second";
+      //     for (int i = 0; i < joint_positions.data.size(); i++)
+      //   std::cout<<joint_positions(i)<<" ";
   // KDL::TreeFkSolverPos_recursive fk_solver(getTree());
 
   // /* special process */
@@ -67,7 +67,6 @@ void HydrusTiltedRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_pos
   //   std::string s = std::to_string(i + 1);
   //   if (!gimbals_angle_.name.empty())
   //   {
-  //     std::cout<<"gimbal yaw"<<i<<" "<<gimbals_angle_.position[i]<<std::endl;
   //     gimbal_processed_joint_(joint_index_map.find(std::string("gimbal") + s)->second) = gimbals_angle_.position[i];
   //   }
   // }
@@ -81,13 +80,19 @@ void HydrusTiltedRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_pos
     }
   /* special process to find the hovering axis for tilt model */
   Eigen::MatrixXd cog_rot_inv = aerial_robot_model::kdlToEigen(getCogDesireOrientation<KDL::Rotation>().Inverse());
+  // std::cout<<"cog"<<cog_rot_inv<<std::endl;
   Eigen::MatrixXd wrench_mat_on_cog = calcWrenchMatrixOnCoG();
   Eigen::VectorXd f = cog_rot_inv * wrench_mat_on_cog.topRows(3) * getStaticThrust();
 
   double f_norm_roll = atan2(f(1), f(2));
   double f_norm_pitch = atan2(-f(0), sqrt(f(1)*f(1) + f(2)*f(2)));
   /* set the hoverable frame as CoG and reupdate model */
-  setCogDesireOrientation(f_norm_roll, f_norm_pitch, 0);
+  // std::cout<<"f"<<f<<std::endl;
+  //   std::cout<<"cog2"<<aerial_robot_model::kdlToEigen(getCogDesireOrientation<KDL::Rotation>().Inverse())<<std::endl;
+  //setCogDesireOrientation(f_norm_roll, f_norm_pitch, 0);
+  //setCogDesireOrientation(getCogDesireOrientation<KDL::Rotation>().Inverse() * KDL::Rotation::RPY(f_norm_roll, f_norm_pitch, 0));
+
+  //std::cout<<"cog2"<<aerial_robot_model::kdlToEigen(getCogDesireOrientation<KDL::Rotation>().Inverse())<<std::endl;
   HydrusRobotModel::updateRobotModelImpl(joint_positions);
 
   if(getVerbose())
