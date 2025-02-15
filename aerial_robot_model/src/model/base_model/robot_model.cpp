@@ -365,7 +365,6 @@ namespace aerial_robot_model {
 
     /* CoG */
     KDL::Frame f_baselink = seg_tf_map.at(baselink_);
-
     KDL::Frame cog;
     cog.M = f_baselink.M * cog_desire_orientation_.Inverse();
     cog.p = link_inertia.getCOG();
@@ -386,7 +385,7 @@ namespace aerial_robot_model {
         KDL::Frame f = seg_tf_map.at(rotor);
         if(verbose_) ROS_WARN(" %s : [%f, %f, %f]", rotor.c_str(), f.p.x(), f.p.y(), f.p.z());
         rotors_origin_from_cog.push_back((cog.Inverse() * f).p);
-        rotors_normal_from_cog.push_back((cog.Inverse() * f).M * KDL::Vector(0, 0, 1));
+        rotors_normal_from_cog.push_back((cog.Inverse() * f).M * KDL::Vector(0, 0, 1)); 
       }
     setRotorsNormalFromCog(rotors_normal_from_cog);
     setRotorsOriginFromCog(rotors_origin_from_cog);
@@ -465,6 +464,7 @@ namespace aerial_robot_model {
       Q.block(0, i, 3, 1) = u.at(i);
       Q.block(3, i, 3, 1) = p.at(i).cross(u.at(i)) + m_f_rate * sigma.at(i + 1) * u.at(i);
     }
+
     return Q;
   }
 

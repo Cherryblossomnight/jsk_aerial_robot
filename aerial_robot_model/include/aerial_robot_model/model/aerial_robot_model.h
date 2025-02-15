@@ -123,7 +123,7 @@ namespace aerial_robot_model {
     }
     void setCogDesireOrientation(const KDL::Rotation cog_desire_orientation)
     {
-      std::lock_guard<std::mutex> lock(mutex_desired_baselink_rot_);
+      std::lock_guard<std::mutex> lock(mutex_desired_baselink_rot_);  
       cog_desire_orientation_  = cog_desire_orientation;
     }
 
