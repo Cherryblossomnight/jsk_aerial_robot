@@ -89,10 +89,6 @@ void RobotModel::calcCoGMomentumJacobian()
   cog_jacobian_.middleCols(3, 3) = - aerial_robot_model::skew(aerial_robot_model::kdlToEigen(cog_all));
   cog_jacobian_ = root_rot * cog_jacobian_;
 
-  std::cout<<"root "<< root_rot<<std::endl;
-  std::cout<<"a "<< aerial_robot_model::kdlToEigen(getCogDesireOrientation<KDL::Rotation>())<<std::endl;
-  std::cout<<"b "<< aerial_robot_model::kdlToEigen(seg_frames.at(getBaselinkName()).M.Inverse())<<std::endl;
-  std::cout<<"c "<< getBaselinkName()<<std::endl;
   l_momentum_jacobian_.leftCols(3) = Eigen::MatrixXd::Zero(3, 3);
   l_momentum_jacobian_.middleCols(3, 3) = getInertia<Eigen::Matrix3d>() * root_rot; // aready converted
   l_momentum_jacobian_.rightCols(joint_num) = root_rot * l_momentum_jacobian_.rightCols(joint_num);

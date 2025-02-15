@@ -52,16 +52,6 @@ public:
   void calcCoGMomentumJacobian() override;
   void updateJacobians(const KDL::JntArray& joint_positions, bool update_model = true) override;
 
- 
-private:
-  void updateRobotModelImpl(const KDL::JntArray& joint_positions) override;
-
-  Eigen::MatrixXd gimbal_jacobian_;
-
-
-  void calcCoGMomentumJacobian() override;
-  void updateJacobians(const KDL::JntArray& joint_positions, bool update_model = true) override;
-
   template <class T> T getGimbalProcessedJoint();
 
 private:

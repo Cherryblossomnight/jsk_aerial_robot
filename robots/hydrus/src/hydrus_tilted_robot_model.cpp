@@ -33,9 +33,6 @@ void HydrusTiltedRobotModel::calcStaticThrust()
   Eigen::MatrixXd wrench_mat_on_cog = calcWrenchMatrixOnCoG();
 
   Eigen::VectorXd static_thrust = aerial_robot_model::pseudoinverse(wrench_mat_on_cog.middleRows(2, 4)) * getGravity().segment(2,4) * getMass();
-  // std::cout<<"th"<<static_thrust<<std::endl;
-  //   std::cout<<"cog"<<wrench_mat_on_cog.middleRows(2, 4)<<std::endl;
-  //   std::cout<<"cog"<<aerial_robot_model::pseudoinverse(wrench_mat_on_cog.middleRows(2, 4))<<std::endl;
   setStaticThrust(static_thrust);
 
  
