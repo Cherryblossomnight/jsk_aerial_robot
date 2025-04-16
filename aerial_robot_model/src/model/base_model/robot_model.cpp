@@ -142,9 +142,10 @@ namespace aerial_robot_model {
     const KDL::Segment current_seg = GetTreeElementSegment(tree_element);
 
     KDL::RigidBodyInertia current_seg_inertia = current_seg.getInertia();
+    verbose_ = true;
     if(verbose_) ROS_WARN_STREAM("segment " <<  current_seg.getName() << ", mass is: " << current_seg_inertia.getMass());
   
-
+    verbose_ = false;
     /* check whether this can be a base inertia segment (i.e. link) */
     /* 1. for the "root" parent link (i.e. link1) */
     if(current_seg.getName().find("root") != std::string::npos)
@@ -188,7 +189,7 @@ namespace aerial_robot_model {
           }
       }
 
-      if (current_seg.getName().find("end_effector") != std::string::npos)
+    if (current_seg.getName().find("end_effector") != std::string::npos)
       {
           inertia_map_.insert(std::make_pair(current_seg.getName(), current_seg_inertia));
       }

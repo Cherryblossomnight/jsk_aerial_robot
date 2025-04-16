@@ -105,8 +105,7 @@ namespace aerial_robot_control
     Eigen::VectorXd target_joint_pos_ = Eigen::VectorXd::Zero(3);
     Eigen::VectorXd target_joint_vel_ = Eigen::VectorXd::Zero(3);;
     Eigen::VectorXd target_joint_acc_ = Eigen::VectorXd::Zero(3);;
-    Eigen::MatrixXd Pre_Bpr_ = Eigen::MatrixXd::Zero(3, 6);
-    Eigen::MatrixXd Pre_Bn_ = Eigen::MatrixXd::Zero(6, 6);
+    Eigen::MatrixXd Pre_M_ = Eigen::MatrixXd::Zero(6, 6);
     Eigen::VectorXd Pre_Pe_ = Eigen::VectorXd::Zero(3);
     Eigen::VectorXd Pre_xi_ = Eigen::VectorXd::Zero(9);
     Eigen::VectorXd target_thrust_z_term_;

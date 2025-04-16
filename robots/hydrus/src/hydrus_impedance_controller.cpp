@@ -153,7 +153,7 @@ void HydrusImpedanceController::controlCore()
   BE.block(3, 0, 3, 3) = B23.transpose();
   ros::Time time = ros::Time::now();
   BE -= Bpr.transpose() * Bpr / uav_mass;
-  CE = - Bpr.transpose() * (Bpr - Pre_Bpr_) / (time-time_).toSec() / (uav_mass * uav_mass);
+  // CE = - Bpr.transpose() * (Bpr - Pre_Bpr_) / (time-time_).toSec() / (uav_mass * uav_mass);
  
   
 
@@ -337,7 +337,7 @@ void HydrusImpedanceController::controlCore()
   pos_pubs_[2].publish(pe3_term);
   Pre_J_ = J;
   Pre_Pe_ = Rc.inverse() * (Pe - Pc);
-  Pre_Bpr_ = Bpr;
+  Pre_M_ = Bpr;
   time_ = time;
 
 
