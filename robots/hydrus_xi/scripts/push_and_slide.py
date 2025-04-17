@@ -75,7 +75,7 @@ if __name__ == "__main__":
  
     time.sleep(4)
     print("preparation 2")
-    nav_msg.target_pos_x = -1.15
+    nav_msg.target_pos_x = -1.20
     nav_pub.publish(nav_msg)
     time.sleep(5)
     print("preparation 3")
@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
         round += 1
         nav_msg.pos_xy_nav_mode = 4
-        nav_msg.target_pos_x = -1.15
+        nav_msg.target_pos_x = -1.10
         nav_msg.target_vel_x = 0.0
         nav_msg.target_pos_y = 0.3 * math.cos(round / 50)
  
@@ -97,8 +97,8 @@ if __name__ == "__main__":
         nav_msg.yaw_nav_mode = 4 
         nav_msg.target_yaw = -0.85
         nav_pub.publish(nav_msg)
-        external_wrench_added.wrench.torque.z = 0.4 * math.cos(round / 50)
-        external_wrench_added.wrench.force.y = 0.6 * math.cos(round / 50)
+        # external_wrench_added.wrench.torque.z = 0.4 * math.cos(round / 50)
+        # external_wrench_added.wrench.force.y = 0.6 * math.cos(round / 50)
         wrench_pub.publish(external_wrench_added)
         time.sleep(duration)
 

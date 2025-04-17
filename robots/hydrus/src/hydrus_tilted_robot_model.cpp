@@ -35,8 +35,6 @@ void HydrusTiltedRobotModel::calcStaticThrust()
   Eigen::VectorXd static_thrust = aerial_robot_model::pseudoinverse(wrench_mat_on_cog.middleRows(2, 4)) * getGravity().segment(2,4) * getMass();
   setStaticThrust(static_thrust);
 
- 
-
 }
 
 Eigen::MatrixXd HydrusTiltedRobotModel::getJacobian(const KDL::JntArray& joint_positions, std::string segment_name, KDL::Vector offset)
@@ -62,14 +60,19 @@ void HydrusTiltedRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_pos
 
   double f_norm_roll = atan2(f(1), f(2));
   double f_norm_pitch = atan2(-f(0), sqrt(f(1)*f(1) + f(2)*f(2)));
+
+
   /* set the hoverable frame as CoG and reupdate model */
   setCogDesireOrientation(f_norm_roll, f_norm_pitch, 0);
   HydrusRobotModel::updateRobotModelImpl(joint_positions);
 
-  if(getVerbose())
+ // if(getVerbose())
+  if(false)
   {
+    std::cout<<joint_positions(2)<<" "<<joint_positions(5)<<" "<<joint_positions(8)<<std::endl;
     ROS_INFO_STREAM("f_norm_pitch: " << f_norm_pitch << "; f_norm_roll: " << f_norm_roll);
     ROS_INFO_STREAM("rescaled static thrust: " << getStaticThrust().transpose());
+    ROS_INFO_STREAM("----------------");
   }
 }
 

@@ -388,6 +388,7 @@ namespace aerial_robot_model {
         rotors_origin_from_cog.push_back((cog.Inverse() * f).p);
         rotors_normal_from_cog.push_back((cog.Inverse() * f).M * KDL::Vector(0, 0, 1)); 
       }
+   
     setRotorsNormalFromCog(rotors_normal_from_cog);
     setRotorsOriginFromCog(rotors_origin_from_cog);
 

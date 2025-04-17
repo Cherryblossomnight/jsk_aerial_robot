@@ -316,7 +316,6 @@ void ServoBridge::servoCtrlCallback(const sensor_msgs::JointStateConstPtr& servo
   spinal::ServoControlCmd target_angle_msg;
   spinal::ServoControlCmd target_torque_msg;
   sensor_msgs::JointState mujoco_control_input_msg;
-
   if(servo_ctrl_msg->name.size() > 0)
     {
       for(int i = 0; i < servo_ctrl_msg->name.size(); i++)
@@ -358,7 +357,8 @@ void ServoBridge::servoCtrlCallback(const sensor_msgs::JointStateConstPtr& servo
             {
               std_msgs::Float64 msg;
               msg.data = servo_ctrl_msg->position[i];
-              servo_target_pos_sim_pubs_[servo_group_name].at(distance(servos_handler_[servo_group_name].begin(), servo_handler)).publish(msg);
+              if (servo_group_name == "gimbals")
+                servo_target_pos_sim_pubs_[servo_group_name].at(distance(servos_handler_[servo_group_name].begin(), servo_handler)).publish(msg);
             }
         }
     }
@@ -396,7 +396,9 @@ void ServoBridge::servoCtrlCallback(const sensor_msgs::JointStateConstPtr& servo
             {
               std_msgs::Float64 msg;
               msg.data = servo_ctrl_msg->position[i];
-              servo_target_pos_sim_pubs_[servo_group_name].at(i).publish(msg);
+              std::cout<<servo_ctrl_msg<<std::endl;
+              if (servo_group_name == "gimbals")
+                servo_target_pos_sim_pubs_[servo_group_name].at(i).publish(msg);
             }
         }
     }

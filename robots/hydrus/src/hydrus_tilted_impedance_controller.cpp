@@ -118,6 +118,9 @@ void HydrusTiltedImpedanceController::controlCore()
   Eigen::Matrix3d R2 = robot_model_->getRotation("link2");
   Eigen::Matrix3d R3 = robot_model_->getRotation("link3");
   Eigen::Matrix3d R4 = robot_model_->getRotation("link4");
+  Eigen::Matrix3d Rg2 = robot_model_->getRotation("thrust2");
+  Eigen::Matrix3d Rg3 = robot_model_->getRotation("thrust3");
+  Eigen::Matrix3d Rg4 = robot_model_->getRotation("thrust4");
   double M1 = robot_model_->getInertiaMap().at("link1").getMass() + robot_model_->getInertiaMap().at("gimbal_link1").getMass();
   double M2 = robot_model_->getInertiaMap().at("link2").getMass() + robot_model_->getInertiaMap().at("gimbal_link2").getMass();
   double M3 = robot_model_->getInertiaMap().at("link3").getMass() + robot_model_->getInertiaMap().at("gimbal_link3").getMass();
@@ -127,7 +130,9 @@ void HydrusTiltedImpedanceController::controlCore()
   Eigen::Matrix3d I3 = aerial_robot_model::kdlToEigen(robot_model_->getInertiaMap().at("link3").getRotationalInertia());
   Eigen::Matrix3d I4 = aerial_robot_model::kdlToEigen(robot_model_->getInertiaMap().at("link4").getRotationalInertia());
 
+  // Rotation Matrix from link1 to CoG
   Eigen::Matrix3d Rc = aerial_robot_model::kdlToEigen(robot_model_->getCog<KDL::Frame>().M);
+  // Translation Vector from link1 to CoG in link1 frame
   Eigen::Vector3d Pc = aerial_robot_model::kdlToEigen(robot_model_->getCog<KDL::Frame>().p);
 
   tf::Matrix3x3 cog = estimator_->getOrientation(Frame::COG, estimate_mode_);
@@ -135,7 +140,8 @@ void HydrusTiltedImpedanceController::controlCore()
   Eigen::Matrix3d target_R = (Eigen::AngleAxisd(navigator_->getTargetRPY().z(), Eigen::Vector3d::UnitZ()) * Eigen::AngleAxisd(target_pitch_, Eigen::Vector3d::UnitY()) * Eigen::AngleAxisd(target_roll_, Eigen::Vector3d::UnitX())).toRotationMatrix();
 
   tf::Vector3 rpy = estimator_->getEuler(Frame::COG, estimate_mode_);
- 
+  
+  // Rotation Matrix from world to CoG
   Eigen::Matrix3d R = Eigen::Matrix3d::Zero();
   R(0, 0) = cog.getRow(0).x();
   R(0, 1) = cog.getRow(0).y();
@@ -148,18 +154,14 @@ void HydrusTiltedImpedanceController::controlCore()
   R(2, 0) = cog.getRow(2).x();
   R(2, 1) = cog.getRow(2).y();
   R(2, 2) = cog.getRow(2).z();
-
+  //Rotation Matrix from world to link1
+  Eigen::Matrix3d Rb = R * Rc.transpose();
   // std::cout<<"R "<<R<<std::endl;
-  // std::cout<<"target_R "<<target_R<<std::endl;
-
-  // std::cout<<"J1_p "<<J1_p<<std::endl;
+  // std::cout<<"R1 "<<Rb * R2<<std::endl;
   // std::cout<<"J2_p "<<J2_p<<std::endl;
   // std::cout<<"J3_p "<<J3_p<<std::endl;
   // std::cout<<"J4_p "<<J4_p<<std::endl;
-  // std::cout<<"J1_o "<<J1_o<<std::endl;
-  // std::cout<<"J2_o "<<J2_o<<std::endl;
-  // std::cout<<"J3_o "<<J3_o<<std::endl;
-  // std::cout<<"J4_o "<<J4_o<<std::endl;
+
 
 
   // std::cout<<"rpy_.z() "<<rpy_.z()<<std::endl;
@@ -229,7 +231,7 @@ void HydrusTiltedImpedanceController::controlCore()
   vel_ = estimator_->getVel(Frame::COG, estimator_->getEstimateMode());
   rpy_ = estimator_->getEuler(Frame::COG, estimator_->getEstimateMode());
   omega_ = estimator_->getAngularVel(Frame::COG, estimator_->getEstimateMode());
-  tf::Vector3 omega_cog = cog.inverse() * omega_;
+
   Eigen::Vector3d omega;
   omega(0) = omega_.x();
   omega(1) = omega_.y();
@@ -289,12 +291,12 @@ void HydrusTiltedImpedanceController::controlCore()
   }
   else
   {  
-    x_tilde(3) = target_joint_pos_[0] - joint_pos_[4];
-    x_tilde(4) = target_joint_pos_[1] - joint_pos_[5];
-    x_tilde(5) = target_joint_pos_[2] - joint_pos_[6];
-    v_tilde(3) = target_joint_vel_[0] - joint_vel_[4];
-    v_tilde(4) = target_joint_vel_[1] - joint_vel_[5];
-    v_tilde(5) = target_joint_vel_[2] - joint_vel_[6];
+    x_tilde(3) = joint_pos_[4] - target_joint_pos_[0];
+    x_tilde(4) = joint_pos_[5] - target_joint_pos_[1];
+    x_tilde(5) = joint_pos_[6] - target_joint_pos_[2];
+    v_tilde(3) = joint_vel_[4] - target_joint_vel_[0];
+    v_tilde(4) = joint_vel_[5] - target_joint_vel_[1];
+    v_tilde(5) = joint_vel_[6] - target_joint_vel_[2];
   }
   // std::cout<<"x:"<<x<<std::endl;
   // std::cout<<"roll:"<<target_roll_<<std::endl;
@@ -306,15 +308,6 @@ void HydrusTiltedImpedanceController::controlCore()
   Eigen::MatrixXd C = getCmatrix(delta_M, xi - Pre_xi_, xi_dot);
 
   std::cout<<"------------------"<<std::endl;
-  // Suppose C = 0, then Cx = -Bx,  see Exploiting Redundancy in Cartesian Impedance Control of UAVs Equipped with a Robotic Arm, Equation (9)
-  
-  // Eigen::MatrixXd Bx = aerial_robot_model::pseudoinverse(J).transpose() * BE * aerial_robot_model::pseudoinverse(J);
-  // Eigen::MatrixXd Cx = aerial_robot_model::pseudoinverse(J).transpose() * (CE - BE * aerial_robot_model::pseudoinverse(J) * (J - Pre_J_) / (time-time_).toSec()) * aerial_robot_model::pseudoinverse(J);
-
-  // Eigen::Matrix3d Md = Eigen::Matrix3d::Zero();
-  // Md(0, 0) = 0.3;
-  // Md(1, 1) = 0.3;
-  // Md(2, 2) = 2.0;
   
   //Kd = -Cx + 2 * (Kp * Bx).sqrt();
   // Eigen::MatrixXd Sigma = Eigen::MatrixXd::Zero(6, 6);
@@ -323,38 +316,43 @@ void HydrusTiltedImpedanceController::controlCore()
   // std::cout<<"Cx: "<<Cx<<std::endl;
 
   // Kd.block(0, 0, 3, 3) = -Cx.block(0, 0, 3, 3) + 2 * 0.9 * (Kp.block(0, 0, 3, 3) * abs(Bx(2, 2))).sqrt();
-  Kd.block(0, 0, 2, 2) = roll_pitch_d_ * Eigen::Matrix2d::Identity();
-  Kd(2, 2) = yaw_d_;
+  // Kd.block(0, 0, 2, 2) = roll_pitch_d_ * Eigen::Matrix2d::Identity();
+  // Kd(2, 2) = yaw_d_;
 
   if (mode_.data == 1)
     Kd.block(3, 3, 3, 3) = pos_d_ * Eigen::Matrix3d::Identity();
   else
     Kd.block(3, 3, 3, 3) = joints_d_ * Eigen::Matrix3d::Identity();
+
+  Kd.block(0, 0, 3, 3) = 2 * (Kp.block(0, 0, 3, 3) * inertia).sqrt();
   //Kd.block(3, 3, 3, 3) = -Cx.block(3, 3, 3, 3) + 2 * 0.2 * (Kp.block(3, 3, 3, 3) * Bx.block(3, 3, 3, 3)).sqrt();
 
   //Kd = -Cx + 2 * 1.0 * (Kp * Sigma).sqrt();
 
-  // Exploiting Redundancy in Cartesian Impedance Control of UAVs Equipped with a Robotic Arm, Equation (9)
-  // for (int i = 0; i < a.size(); i++)
-  // {
-  //   if (a(i) > 0.3)
-  //     a(i) = 0.3;
-
-  //   if (a(i) < -0.3)
-  //     a(i) = -0.3;
-  // }
   // u = C * v - Kd * v_tilde - Kp * x_tilde;
-  u = aerial_robot_model::skew(omega) * inertia * omega - Kd * v_tilde - Kp * x_tilde;
+  Eigen::VectorXd u1 = Eigen::VectorXd::Zero(6);
+  u1.segment(0, 3) = aerial_robot_model::skew(omega) * inertia * omega;
+  // u1.segment(3, 3) = (C * v).segment(3, 3);
+  u = u1 - Kd * v_tilde - Kp * x_tilde;
+
   // Gravity compensation
+  Eigen::VectorXd total_thrust = Eigen::VectorXd::Zero(4);
+  total_thrust = target_thrust_z_term_ + 0.2 * (target_thrust_roll_term_ + target_thrust_pitch_term_ + target_thrust_yaw_term_);
+  // total_thrust = target_thrust_z_term_;
+  Eigen::Vector3d T2, T3, T4, To, g2, g3, g4, go;
+  To[2] = total_thrust[1];
+  T2 = Rg2 * To;
+  To[2] = total_thrust[2];
+  T3 = Rg3 * To;
+  To[2] = total_thrust[3];
+  T4 = Rg4 * To;
 
-  //
-  // double Kpx = 0.05;
-  // double Kdx = 2 * sqrt(uav_mass * Kpx);
-
-  // double ux = Kdx * pid_controllers_.at(X).getErrP() + Kpx * pid_controllers_.at(X).getErrD();
-  // double Kpy = 0.05;
-  // double Kdy = 2 * sqrt(uav_mass * Kpy);
-  // double uy = Kdy * pid_controllers_.at(Y).getErrP() + Kpy * pid_controllers_.at(Y).getErrD();
+  go[2] = -M2 * aerial_robot_estimation::G;
+  g2 = Rb.transpose() * go;
+  go[2] = -M3 * aerial_robot_estimation::G;
+  g3 = Rb.transpose() * go;
+  go[2] = -M4 * aerial_robot_estimation::G;
+  g4 = Rb.transpose() * go;
 
 
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
@@ -370,8 +368,12 @@ void HydrusTiltedImpedanceController::controlCore()
   std_msgs::Float64 j1_term, j2_term, j3_term;
 
 
+  double F2, F3, F4;
+  F2 = (J2_p.transpose() * (T2 + g2) + J3_p.transpose() * (T3 + g3) + J4_p.transpose() * (T4 + g4))[0];
+  F3 = (J2_p.transpose() * (T2 + g2) + J3_p.transpose() * (T3 + g3) + J4_p.transpose() * (T4 + g4))[1];
+  F4 = (J2_p.transpose() * (T2 + g2) + J3_p.transpose() * (T3 + g3) + J4_p.transpose() * (T4 + g4))[2];
   //std::cout<<"P_inv'"<<P_inv<<std::endl;
-
+ 
   Eigen::VectorXd f1 = R1.inverse()*Rc*P.block(0, 0, 3, 1);
   Eigen::VectorXd f2 = R2.inverse()*Rc*P.block(0, 1, 3, 1);
   Eigen::VectorXd f3 = R2.inverse()*Rc*P.block(0, 0, 3, 1);
@@ -382,24 +384,39 @@ void HydrusTiltedImpedanceController::controlCore()
   // j1_term.data = u(3);
   // j2_term.data = u(4);
   // j3_term.data = u(5);
-  j1_term.data = u(3) - f1[1] * target_thrust_z_term_[0] * 0.3;
-  j2_term.data = u(4) - f2[1] * target_thrust_z_term_[1] * 0.3 - f3[1] * target_thrust_z_term_[0] * (0.6 + 0.3 * abs(cos(joint_pos_[0])));
-  j3_term.data = u(5) - f4[1] * target_thrust_z_term_[3] * 0.3;
+  std::cout<<"T1: "<< T2<<std::endl;
+  std::cout<<"T2: "<< T3<<std::endl;
+  std::cout<<"T3: "<< T4<<std::endl;
+  std::cout<<"G1: "<< g2<<std::endl;
+  std::cout<<"G2: "<< g3<<std::endl;
+  std::cout<<"G3: "<< g4<<std::endl;
+  // j1_term.data = u(3) - f1[1] * target_thrust_z_term_[0] * 0.3;
+  // j2_term.data = u(4) - f2[1] * target_thrust_z_term_[1] * 0.3 - f3[1] * target_thrust_z_term_[0] * (0.6 + 0.3 * abs(cos(joint_pos_[0])));
+  // j3_term.data = u(5) - f4[1] * target_thrust_z_term_[3] * 0.3;
+
+  j1_term.data = u(3) - F2;
+  j2_term.data = u(4) - F3;
+  j3_term.data = u(5) - F4;
   // std::cout<<"u1"<<x_dot<<std::endl;
-  // std::cout<<"u2"<<Cx * x_d_dot<<std::endl;
-  // std::cout<<"u3"<<Kd * x_dot<<std::endl;
-  // std::cout<<"u4"<<Kp * x<<std::endl;
+  std::cout<<"u1: "<< u(3)<<std::endl;
+  std::cout<<"u2: "<< u(4)<<std::endl;
+  std::cout<<"u3: "<< u(5)<<std::endl;
 
-  // std::cout<<"f1"<<f1[1] * target_thrust_z_term_[0] * 0.3<<std::endl;
-  // std::cout<<"f2"<<f2[1] * target_thrust_z_term_[1] * 0.3 - f3[1] * target_thrust_z_term_[0] * (0.6 + 0.3 * abs(cos(joint_pos_[0])))<<std::endl;
-  // std::cout<<"f3"<<f4[1] * target_thrust_z_term_[3] * 0.3<<std::endl;
-
+  std::cout<<"j1: "<< j1_term.data<<std::endl;
+  std::cout<<"j2: "<< j2_term.data<<std::endl;
+  std::cout<<"j3: "<< j3_term.data<<std::endl;
+  std::cout<<"F2: "<< F2<<std::endl;
+  std::cout<<"F3: "<< F3<<std::endl;
+  std::cout<<"F4: "<< F4<<std::endl;
+  std::cout<<"F2: "<< f1[1] * target_thrust_z_term_[0] * 0.3<<std::endl;
+  std::cout<<"F3: "<< f2[1] * target_thrust_z_term_[1] * 0.3 + f3[1] * target_thrust_z_term_[0] * (0.6 + 0.3 * abs(cos(joint_pos_[0])))<<std::endl;
+  std::cout<<"F4: "<< f4[1] * target_thrust_z_term_[3] * 0.3<<std::endl;
 
   // std::cout<<target_thrust_z_term_<<std::endl;
 
-  // joint_cmd_pubs_[0].publish(j1_term);
-  // joint_cmd_pubs_[1].publish(j2_term);
-  // joint_cmd_pubs_[2].publish(j3_term);
+  joint_cmd_pubs_[0].publish(j1_term);
+  joint_cmd_pubs_[1].publish(j2_term);
+  joint_cmd_pubs_[2].publish(j3_term);
   Eigen::MatrixXd pe = Rc.inverse() * (Pe - Pc);
   std_msgs::Float64 pe1_term, pe2_term, pe3_term;
 
@@ -424,9 +441,9 @@ void HydrusTiltedImpedanceController::controlCore()
   // std::cout<<"j3: "<< u(5)<<std::endl;
   // std::cout<<"------------------------"<<std::endl;
 
-  std::cout<<"v_tilde: "<< v_tilde<<std::endl;
-  std::cout<<"omega: "<<  target_omega<<std::endl;
-  std::cout<<"omega: "<<  omega<<std::endl;
+  // std::cout<<"v_tilde: "<< v_tilde<<std::endl;
+  std::cout<<"x_tilde: "<< x_tilde<<std::endl;
+  // std::cout<<"c: "<< C*v<<std::endl;
   // std::cout<<"pe: "<< Rc.inverse() * (Pe - Pc)<<std::endl;
 //   // std::cout<<"Bx: "<< Bx<<std::endl;
 //   // std::cout<<"Cx: "<< Cx<<std::endl;

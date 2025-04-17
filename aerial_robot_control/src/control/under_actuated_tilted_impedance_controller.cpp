@@ -106,6 +106,7 @@ void UnderActuatedTiltedImpedanceController::controlCore()
       pid_controllers_.at(Z).setErrI(pid_controllers_.at(Z).getPrevErrI());
       target_thrust_z_term *= (1 - residual / max_term);
     }
+  target_thrust_z_term_ = target_thrust_z_term;
   for(int i = 0; i < motor_num_; i++)
     {
       target_base_thrust_.at(i) = target_thrust_z_term(i) + target_thrust_roll_term_(i) + target_thrust_pitch_term_(i) + target_thrust_yaw_term_(i);
