@@ -1026,7 +1026,7 @@ void AttitudeController::pwmConversion()
               int min_thrust_index = 0;
               for(int i = 0; i < motor_number_; i++)
                 {
-                  // float thrust = base_thrust_term_[i] + roll_pitch_term_[i] + yaw_term_[i];
+                  //float thrust = base_thrust_term_[i] + roll_pitch_term_[i] + yaw_term_[i];
                   float thrust = base_thrust_term_[i];
                   if(max_thrust < thrust)
                     {
@@ -1056,7 +1056,7 @@ void AttitudeController::pwmConversion()
 
               if(residual_term < 0)
                 {
-                  // yaw_decreasing_rate = residual_term / (fabs(yaw_term_[thrust_index]) / rotor_devider_);
+                  //yaw_decreasing_rate = residual_term / (fabs(yaw_term_[thrust_index]) / rotor_devider_);
                   yaw_decreasing_rate = residual_term / (fabs(yaw_thrust_term_[thrust_index]) / rotor_devider_);
                 }
 
@@ -1072,19 +1072,9 @@ void AttitudeController::pwmConversion()
 
   for(int i = 0; i < motor_number_; i++)
   {
-    // std::cout<<i<<std::endl;
-    // std::cout<<roll_pitch_term_[i] + (1 + base_thrust_decreasing_rate) * base_thrust_term_[i] + (1 + yaw_decreasing_rate) * yaw_term_[i]<<std::endl;
     //target_thrust_[i] = roll_pitch_term_[i] + (1 + base_thrust_decreasing_rate) * base_thrust_term_[i] + (1 + yaw_decreasing_rate) * yaw_term_[i];
     target_thrust_[i] =  (1 + base_thrust_decreasing_rate) * base_thrust_term_[i];
-    // std::cout<<target_thrust_[i]<<std::endl;
 
-    // std::cout<<roll_thrust_term_[i]<<std::endl;
-    // std::cout<<pitch_thrust_term_[i]<<std::endl;
-
-    // std::cout<<yaw_thrust_term_[i]<<std::endl;
-    // std::cout<<roll_pitch_term_[i]<<std::endl;
-    // std::cout<<yaw_term_[i]<<std::endl;
-    // std::cout<<"--------------------------------------"<<std::endl;
   }
 
   /* convert to target pwm */

@@ -121,6 +121,11 @@ void HydrusTiltedImpedanceController::controlCore()
   Eigen::Matrix3d Rg2 = robot_model_->getRotation("thrust2");
   Eigen::Matrix3d Rg3 = robot_model_->getRotation("thrust3");
   Eigen::Matrix3d Rg4 = robot_model_->getRotation("thrust4");
+
+  std::vector<Eigen::MatrixXd> Rg;
+  Rg.push_back(Rg2);
+  Rg.push_back(Rg3);
+  Rg.push_back(Rg4);
   double M1 = robot_model_->getInertiaMap().at("link1").getMass() + robot_model_->getInertiaMap().at("gimbal_link1").getMass();
   double M2 = robot_model_->getInertiaMap().at("link2").getMass() + robot_model_->getInertiaMap().at("gimbal_link2").getMass();
   double M3 = robot_model_->getInertiaMap().at("link3").getMass() + robot_model_->getInertiaMap().at("gimbal_link3").getMass();
@@ -307,8 +312,8 @@ void HydrusTiltedImpedanceController::controlCore()
 
   Eigen::MatrixXd C = getCmatrix(delta_M, xi - Pre_xi_, xi_dot);
 
-  std::cout<<"------------------"<<std::endl;
-  
+  std::cout<<"target_joint_pos_"<<target_joint_pos_<<std::endl;
+  std::cout<<"joint_pos_"<<joint_pos_<<std::endl;
   //Kd = -Cx + 2 * (Kp * Bx).sqrt();
   // Eigen::MatrixXd Sigma = Eigen::MatrixXd::Zero(6, 6);
   // for (int i = 0; i < 6; i++) Sigma(i, i) = abs(Bx(i, i));
@@ -332,28 +337,21 @@ void HydrusTiltedImpedanceController::controlCore()
   // u = C * v - Kd * v_tilde - Kp * x_tilde;
   Eigen::VectorXd u1 = Eigen::VectorXd::Zero(6);
   u1.segment(0, 3) = aerial_robot_model::skew(omega) * inertia * omega;
+  std::cout<<"u1"<<u1<<std::endl;
+  std::cout<<"Cv"<<C * v<<std::endl;
   // u1.segment(3, 3) = (C * v).segment(3, 3);
-  u = u1 - Kd * v_tilde - Kp * x_tilde;
+  Eigen::VectorXd e1 = Eigen::VectorXd::Zero(6);
+  e1.segment(0, 3) = est_external_wrench_.tail(3);
+  Eigen::MatrixXd Md = 5 * M;
+  u = (M * Md.inverse() - Eigen::MatrixXd::Identity(6, 6)) * e1 - (Kd * v_tilde + Kp * x_tilde) + u1;
+
 
   // Gravity compensation
   Eigen::VectorXd total_thrust = Eigen::VectorXd::Zero(4);
   total_thrust = target_thrust_z_term_ + 0.2 * (target_thrust_roll_term_ + target_thrust_pitch_term_ + target_thrust_yaw_term_);
   // total_thrust = target_thrust_z_term_;
-  Eigen::Vector3d T2, T3, T4, To, g2, g3, g4, go;
-  To[2] = total_thrust[1];
-  T2 = Rg2 * To;
-  To[2] = total_thrust[2];
-  T3 = Rg3 * To;
-  To[2] = total_thrust[3];
-  T4 = Rg4 * To;
-
-  go[2] = -M2 * aerial_robot_estimation::G;
-  g2 = Rb.transpose() * go;
-  go[2] = -M3 * aerial_robot_estimation::G;
-  g3 = Rb.transpose() * go;
-  go[2] = -M4 * aerial_robot_estimation::G;
-  g4 = Rb.transpose() * go;
-
+  Eigen::Vector3d M_vec(M2, M3, M4);
+  Eigen::Matrix3d u_comp = calCompTorque(total_thrust, Rg, Rb, M_vec);
 
   Eigen::MatrixXd P = robot_model_->calcWrenchMatrixOnCoG();
   Eigen::MatrixXd P_inv = aerial_robot_model::pseudoinverse(P);
@@ -369,27 +367,20 @@ void HydrusTiltedImpedanceController::controlCore()
 
 
   double F2, F3, F4;
-  F2 = (J2_p.transpose() * (T2 + g2) + J3_p.transpose() * (T3 + g3) + J4_p.transpose() * (T4 + g4))[0];
-  F3 = (J2_p.transpose() * (T2 + g2) + J3_p.transpose() * (T3 + g3) + J4_p.transpose() * (T4 + g4))[1];
-  F4 = (J2_p.transpose() * (T2 + g2) + J3_p.transpose() * (T3 + g3) + J4_p.transpose() * (T4 + g4))[2];
+  F2 = (J2_p.transpose() * u_comp.col(0) + J3_p.transpose() * u_comp.col(1) + J4_p.transpose() * u_comp.col(2))[0];
+  F3 = (J2_p.transpose() * u_comp.col(0) + J3_p.transpose() * u_comp.col(1) + J4_p.transpose() * u_comp.col(2))[1];
+  F4 = (J2_p.transpose() * u_comp.col(0) + J3_p.transpose() * u_comp.col(1) + J4_p.transpose() * u_comp.col(2))[2];
   //std::cout<<"P_inv'"<<P_inv<<std::endl;
- 
-  Eigen::VectorXd f1 = R1.inverse()*Rc*P.block(0, 0, 3, 1);
-  Eigen::VectorXd f2 = R2.inverse()*Rc*P.block(0, 1, 3, 1);
-  Eigen::VectorXd f3 = R2.inverse()*Rc*P.block(0, 0, 3, 1);
-  Eigen::VectorXd f4 = R4.inverse()*Rc*P.block(0, 3, 3, 1);
-
-  //std::cout<<"J.transpose()"<<J.transpose()<<std::endl;
 
   // j1_term.data = u(3);
   // j2_term.data = u(4);
   // j3_term.data = u(5);
-  std::cout<<"T1: "<< T2<<std::endl;
-  std::cout<<"T2: "<< T3<<std::endl;
-  std::cout<<"T3: "<< T4<<std::endl;
-  std::cout<<"G1: "<< g2<<std::endl;
-  std::cout<<"G2: "<< g3<<std::endl;
-  std::cout<<"G3: "<< g4<<std::endl;
+  // std::cout<<"T1: "<< T2<<std::endl;
+  // std::cout<<"T2: "<< T3<<std::endl;
+  // std::cout<<"T3: "<< T4<<std::endl;
+  // std::cout<<"G1: "<< g2<<std::endl;
+  // std::cout<<"G2: "<< g3<<std::endl;
+  // std::cout<<"G3: "<< g4<<std::endl;
   // j1_term.data = u(3) - f1[1] * target_thrust_z_term_[0] * 0.3;
   // j2_term.data = u(4) - f2[1] * target_thrust_z_term_[1] * 0.3 - f3[1] * target_thrust_z_term_[0] * (0.6 + 0.3 * abs(cos(joint_pos_[0])));
   // j3_term.data = u(5) - f4[1] * target_thrust_z_term_[3] * 0.3;
@@ -401,22 +392,18 @@ void HydrusTiltedImpedanceController::controlCore()
   std::cout<<"u1: "<< u(3)<<std::endl;
   std::cout<<"u2: "<< u(4)<<std::endl;
   std::cout<<"u3: "<< u(5)<<std::endl;
-
   std::cout<<"j1: "<< j1_term.data<<std::endl;
   std::cout<<"j2: "<< j2_term.data<<std::endl;
   std::cout<<"j3: "<< j3_term.data<<std::endl;
   std::cout<<"F2: "<< F2<<std::endl;
   std::cout<<"F3: "<< F3<<std::endl;
   std::cout<<"F4: "<< F4<<std::endl;
-  std::cout<<"F2: "<< f1[1] * target_thrust_z_term_[0] * 0.3<<std::endl;
-  std::cout<<"F3: "<< f2[1] * target_thrust_z_term_[1] * 0.3 + f3[1] * target_thrust_z_term_[0] * (0.6 + 0.3 * abs(cos(joint_pos_[0])))<<std::endl;
-  std::cout<<"F4: "<< f4[1] * target_thrust_z_term_[3] * 0.3<<std::endl;
 
   // std::cout<<target_thrust_z_term_<<std::endl;
 
-  joint_cmd_pubs_[0].publish(j1_term);
-  joint_cmd_pubs_[1].publish(j2_term);
-  joint_cmd_pubs_[2].publish(j3_term);
+  // joint_cmd_pubs_[0].publish(j1_term);
+  // joint_cmd_pubs_[1].publish(j2_term);
+  // joint_cmd_pubs_[2].publish(j3_term);
   Eigen::MatrixXd pe = Rc.inverse() * (Pe - Pc);
   std_msgs::Float64 pe1_term, pe2_term, pe3_term;
 
@@ -485,6 +472,22 @@ Eigen::MatrixXd HydrusTiltedImpedanceController::getCmatrix(Eigen::MatrixXd delt
   }
   return C;
 
+}
+
+Eigen::MatrixXd HydrusTiltedImpedanceController::calCompTorque(Eigen::VectorXd thrust, std::vector<Eigen::MatrixXd> Rg, Eigen::MatrixXd Rb, Eigen::VectorXd M)
+{
+  Eigen::Vector3d To, Go;
+  Eigen::Matrix3d T;
+  for (int i = 0; i < Rg.size(); i++)
+  {
+    // Thrust compesation
+    To[2] = thrust[i + 1];
+    T.col(i) = Rg[i] * To;
+    // Gravity compesation
+    Go[2] = -M[i] * aerial_robot_estimation::G;
+    T.col(i) += Rb.transpose() * Go;
+  }
+  return T;
 }
 
 void HydrusTiltedImpedanceController::rosParamInit()

@@ -357,7 +357,7 @@ void ServoBridge::servoCtrlCallback(const sensor_msgs::JointStateConstPtr& servo
             {
               std_msgs::Float64 msg;
               msg.data = servo_ctrl_msg->position[i];
-              if (servo_group_name == "gimbals")
+              //if (servo_group_name == "gimbals")
                 servo_target_pos_sim_pubs_[servo_group_name].at(distance(servos_handler_[servo_group_name].begin(), servo_handler)).publish(msg);
             }
         }
@@ -397,7 +397,7 @@ void ServoBridge::servoCtrlCallback(const sensor_msgs::JointStateConstPtr& servo
               std_msgs::Float64 msg;
               msg.data = servo_ctrl_msg->position[i];
               std::cout<<servo_ctrl_msg<<std::endl;
-              if (servo_group_name == "gimbals")
+              //if (servo_group_name == "gimbals")
                 servo_target_pos_sim_pubs_[servo_group_name].at(i).publish(msg);
             }
         }

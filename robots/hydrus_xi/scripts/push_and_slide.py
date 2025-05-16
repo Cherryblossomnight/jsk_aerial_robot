@@ -98,7 +98,7 @@ if __name__ == "__main__":
         nav_msg.target_yaw = -0.85
         nav_pub.publish(nav_msg)
         # external_wrench_added.wrench.torque.z = 0.4 * math.cos(round / 50)
-        # external_wrench_added.wrench.force.y = 0.6 * math.cos(round / 50)
+        # external_wrench_added.wrench.force.y = 0.4 * math.cos(round / 50)
         wrench_pub.publish(external_wrench_added)
         time.sleep(duration)
 

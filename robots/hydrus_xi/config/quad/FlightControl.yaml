@@ -2,7 +2,7 @@ aerial_robot_control_name: aerial_robot_control/hydrus_tilted_impedance_controll
 
 controller:
   xy:
-    p_gain: 2.3 # option: impedance: 1.5, lqi: 2.3
+    p_gain: 3.5 # option: impedance: 1.5, lqi: 2.3
     i_gain: 0.02
     d_gain: 2.3 # impedance: 2.2, lqi: 4.0
     limit_sum: 3
@@ -58,14 +58,14 @@ controller:
     gyro_moment_compensation: true
     clamp_gain: true
 
-    roll_pitch_p: 30.0
-    roll_pitch_d: 3.0
+    roll_pitch_p: 50.0
+    roll_pitch_d: 3.5
 
-    yaw_p: 15.0
-    yaw_d: 1.5
+    yaw_p: 30.0
+    yaw_d: 2.5
 
-    joints_p: 30.0
-    joints_d: 3.0
+    joints_p: 25.0
+    joints_d: 2.2
 
     pos_p: 10.0
     pos_d: 2.0
