@@ -94,11 +94,11 @@ controller:
     need_d_control: true
 
   mdx: 0.9
-  mdy: 2.0
-  mdz: 2.0
-  Idx: 2.0
-  Idy: 2.0
-  Idz: 2.0
+  mdy: 5.0
+  mdz: 5.0
+  Idx: 10.0
+  Idy: 10.0
+  Idz: 3.0
 
   # Idy: 0.4
   # Idz: 0.8

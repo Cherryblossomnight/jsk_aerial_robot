@@ -6,6 +6,7 @@
   <xacro:arg name="opening_width" default="0.0" /> <!-- m -->
   <xacro:arg name="env_width" default="4.0" /> <!-- m -->
   <xacro:arg name="env_length" default="6.0" /> <!-- m -->
+  <xacro:arg name="fric_factor" default="0.25" /> <!-- m -->
   <xacro:property name="frame_mass" value="10" />
 
   <material name="red">
@@ -62,20 +63,20 @@
   <!-- Noet: 0.13 corresponds to 3.5N -->
   <gazebo reference="main_frame1">
     <material>Gazebo/Black</material>
-    <mu1>0.13</mu1>
-    <mu2>0.13</mu2>
+    <mu1>$(arg fric_factor)</mu1>
+    <mu2>0.25</mu2>
   </gazebo>
 
   <gazebo reference="main_frame2">
     <material>Gazebo/Black</material>
-    <mu1>0.13</mu1>
-    <mu2>0.13</mu2>
+    <mu1>0.25</mu1>
+    <mu2>0.25</mu2>
   </gazebo>
 
   <gazebo reference="main_frame3">
     <material>Gazebo/Black</material>
-    <mu1>0.13</mu1>
-    <mu2>0.13</mu2>
+    <mu1>0.5</mu1>
+    <mu2>0.5</mu2>
   </gazebo>
 
 
