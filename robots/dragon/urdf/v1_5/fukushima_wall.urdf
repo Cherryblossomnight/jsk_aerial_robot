@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <robot
-    xmlns:xacro="http://www.ros.org/wiki/xacro" name="opening" >
+    xmlns:xacro="http://www.ros.org/wiki/xacro" name="opening2" >
 
   <xacro:arg name="opening_height" default="2.0" /> <!-- m -->
   <xacro:arg name="opening_width" default="0.0" /> <!-- m -->
@@ -13,35 +13,35 @@
   </material>
 
 
-  <xacro:macro name="frame_model" params="name mass length width x y height thickness direction color:=black">
+  <xacro:macro name="frame_model" params="name mass length width height x y z direction color:=black">
     <link name="${name}">
       <visual>
-        <origin xyz="${x} ${y} ${height}" rpy="0 0 ${direction}"/>
+        <origin xyz="${x} ${y} ${z}" rpy="0 0 ${direction}"/>
         <geometry>
-          <box size="${length} ${width} ${thickness}" />
+          <box size="${length} ${width} ${height}" />
         </geometry>
         <material name="${color}"/>
       </visual>
       <collision>
-        <origin xyz="${x} ${y} ${height}" rpy="0 0 ${direction}"/>
+        <origin xyz="${x} ${y} ${z}" rpy="0 0 ${direction}"/>
         <geometry>
-          <box size="${length} ${width} ${thickness}" />
+          <box size="${length} ${width} ${height}" />
         </geometry>
       </collision>
       <inertial>
-        <origin xyz="${x} ${y} ${height}" rpy="0 0 ${direction}"/>
+        <origin xyz="${x} ${y} ${z}" rpy="0 0 ${direction}"/>
         <mass value="${mass}"/>
         <inertia
-            ixx="${0.25 * mass * width * thickness}" ixy="0.0" ixz="0.0"
-            iyy="${0.25 * mass * width * thickness}" iyz="0.0"
-            izz="${0.5 * mass * width * thickness}"/>
+            ixx="${0.25 * mass * width * height}" ixy="0.0" ixz="0.0"
+            iyy="${0.25 * mass * width * height}" iyz="0.0"
+            izz="${0.5 * mass * width * height}"/>
       </inertial>
     </link>
   </xacro:macro>
 
-  <xacro:frame_model name="main_frame1" mass="${frame_mass}" length="$(arg env_length)" width="0.02" x="0" y="${0.5 * $(arg env_width)}" height="${2 * $(arg opening_height)}" thickness="$(arg opening_height)" direction="0.20" />
-  <xacro:frame_model name="main_frame2" mass="${frame_mass}" length="$(arg env_length)" width="0.02" x="0" y="${-0.5 * $(arg env_width)}"  height="${2 * $(arg opening_height)}" thickness="$(arg opening_height)" direction="0.20" />
-  <xacro:frame_model name="main_frame3" mass="${frame_mass}" length="0.02" width="$(arg env_width)" x="0" y="0"  height="${2 * $(arg opening_height)}" thickness="$(arg opening_height)" direction="0.20"  />
+  <xacro:frame_model name="main_frame1" mass="${frame_mass}" length="0.15" width="0.15" height="$(arg opening_height)" x="0" y="${0.5 * $(arg env_width)}" z="${0.5 * $(arg opening_height)}" direction="0.0" />
+  <xacro:frame_model name="main_frame2" mass="${frame_mass}" length="0.15" width="0.15" height="$(arg opening_height)" x="0" y="${-0.5 * $(arg env_width)}"  z="${0.5 * $(arg opening_height)}" direction="0.0" />
+  <xacro:frame_model name="main_frame3" mass="${frame_mass}" length="0.15" width="$(arg env_width)" height="0.15" x="0" y="0"  z="1.925"  direction="0.0"  />
 
 
   <joint name="frame_joint1" type="fixed">
@@ -79,10 +79,10 @@
   </gazebo>
 
 
-<!-- 
+
   <gazebo>
     <static>true</static>
-  </gazebo> -->
+  </gazebo>
 
 
 </robot>
