@@ -370,6 +370,8 @@ void AttitudeController::update(void)
           {
             for(int axis = 0; axis < 3; axis++)
               {
+                // std::cout<< "p "<<i<<"axis"<<axis<<thrust_p_gain_[i][axis]<<std::endl;
+                // std::cout<< "d "<<i<<"axis"<<axis<<thrust_d_gain_[i][axis]<<std::endl;
                 p_term = error_angle[axis] * thrust_p_gain_[i][axis];
                 i_term = error_angle_i_[axis] * thrust_i_gain_[i][axis];
                 d_term = -vel[axis] * thrust_d_gain_[i][axis];
@@ -377,7 +379,7 @@ void AttitudeController::update(void)
                   {
                     roll_pitch_term_[i] = p_term + i_term + d_term; // [N]
                     control_term_msg_.motors[i].roll_p = p_term * 1000;
-                    control_term_msg_.motors[i].roll_i= i_term * 1000;
+                    control_term_msg_.motors[i].roll_i = i_term * 1000;
                     control_term_msg_.motors[i].roll_d = d_term * 1000;
                   }
                 if(axis == Y)
@@ -440,6 +442,10 @@ void AttitudeController::reset(void)
       pwm_test_value_[i] = IDLE_DUTY;
 
       base_thrust_term_[i] = 0;
+      roll_thrust_term_[i] = 0;
+      pitch_thrust_term_[i] = 0;
+      yaw_thrust_term_[i] = 0;
+
       roll_pitch_term_[i] = 0;
       yaw_term_[i] = 0;
       extra_yaw_pi_term_[i] = 0;
@@ -500,7 +506,7 @@ void AttitudeController::fourAxisCommandCallback( const spinal::FourAxisCommand 
       return;
     }
 #else
-  if(cmd_msg.base_thrust_length != motor_number_)
+  if(cmd_msg.base_thrust.size() != motor_number_)
     {
       nh_->logerror("fource axis commnd: motor number is not identical between fc and pc");
       return;
@@ -532,7 +538,10 @@ void AttitudeController::fourAxisCommandCallback( const spinal::FourAxisCommand 
     {
       // base thrust is about the z control
       base_thrust_term_[i] = cmd_msg.base_thrust[i];
-
+      // Add roll/pitch/yaw control term
+      // roll_thrust_term_[i] = cmd_msg.roll_thrust[i];
+      // pitch_thrust_term_[i] = cmd_msg.pitch_thrust[i];
+      // yaw_thrust_term_[i] = cmd_msg.yaw_thrust[i];
       // reconstruct the pi term for yaw (temporary measure for pwm saturation avoidance)
       if(max_yaw_term_index_ != -1)
         extra_yaw_pi_term_[i] = cmd_msg.angles[Z] * thrust_d_gain_[i][Z] / thrust_d_gain_[max_yaw_term_index_][Z];
@@ -926,6 +935,7 @@ void AttitudeController::pwmConversion()
     {
 #ifdef SIMULATION
       float voltage = sim_voltage_;
+
 #else
       float voltage = bat_->getVoltage();
 #endif
@@ -1018,6 +1028,9 @@ void AttitudeController::pwmConversion()
               int min_thrust_index = 0;
               for(int i = 0; i < motor_number_ / (rotor_coef_); i++)
                 {
+
+
+
                   float thrust;
                   switch(gimbal_dof_)
                     {
@@ -1033,6 +1046,7 @@ void AttitudeController::pwmConversion()
                     default:
                       break;
                     }
+
                   if(max_thrust < thrust)
                     {
                       max_thrust = thrust;
@@ -1061,7 +1075,8 @@ void AttitudeController::pwmConversion()
 
               if(residual_term < 0)
                 {
-                  yaw_decreasing_rate = residual_term / (fabs(yaw_term_[thrust_index]) / rotor_devider_);
+                  //yaw_decreasing_rate = residual_term / (fabs(yaw_term_[thrust_index]) / rotor_devider_);
+                  yaw_decreasing_rate = residual_term / (fabs(yaw_thrust_term_[thrust_index]) / rotor_devider_);
                 }
 
               if(yaw_decreasing_rate < -1) yaw_decreasing_rate = -1;
@@ -1073,9 +1088,24 @@ void AttitudeController::pwmConversion()
             }
         }
     }
+
   
   for(int i = 0; i < motor_number_; i++)
+  {
+    // std::cout<<i<<std::endl;
+    // std::cout<<roll_pitch_term_[i] + (1 + base_thrust_decreasing_rate) * base_thrust_term_[i] + (1 + yaw_decreasing_rate) * yaw_term_[i]<<std::endl;
     target_thrust_[i] = roll_pitch_term_[i] + (1 + base_thrust_decreasing_rate) * base_thrust_term_[i] + (1 + yaw_decreasing_rate) * yaw_term_[i];
+    //target_thrust_[i] =  (1 + base_thrust_decreasing_rate) * base_thrust_term_[i];
+    // std::cout<<target_thrust_[i]<<std::endl;
+
+    // std::cout<<roll_thrust_term_[i]<<std::endl;
+    // std::cout<<pitch_thrust_term_[i]<<std::endl;
+
+    // std::cout<<yaw_thrust_term_[i]<<std::endl;
+    // std::cout<<roll_pitch_term_[i]<<std::endl;
+    // std::cout<<yaw_term_[i]<<std::endl;
+    // std::cout<<"--------------------------------------"<<std::endl;
+  }
 
   /* convert to target pwm and calculate target gimbal angles */
   /* TODO: adjust not only for gimbalrotor but also for fixed rotor */

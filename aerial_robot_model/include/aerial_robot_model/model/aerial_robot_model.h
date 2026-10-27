@@ -123,7 +123,7 @@ namespace aerial_robot_model {
     }
     void setCogDesireOrientation(const KDL::Rotation cog_desire_orientation)
     {
-      std::lock_guard<std::mutex> lock(mutex_desired_baselink_rot_);
+      std::lock_guard<std::mutex> lock(mutex_desired_baselink_rot_);  
       cog_desire_orientation_  = cog_desire_orientation;
     }
 
@@ -167,6 +167,15 @@ namespace aerial_robot_model {
     virtual bool stabilityCheck(bool verbose = true);
 
     KDL::JntArray convertEigenToKDL(const Eigen::VectorXd& joint_vector);
+
+    virtual Eigen::MatrixXd getJacobian(const KDL::JntArray& joint_positions, std::string segment_name, KDL::Vector offset = KDL::Vector::Zero());
+
+    virtual void updateJacobians();
+    virtual Eigen::MatrixXd getJacobians(std::string segment_name);
+    virtual Eigen::MatrixXd getPosition(std::string segment_name);
+    virtual Eigen::MatrixXd getRotation(std::string segment_name);
+
+
 
   private:
 
@@ -230,12 +239,17 @@ namespace aerial_robot_model {
     std::mutex mutex_seg_tf_;
     std::mutex mutex_desired_baselink_rot_;
 
+  
+
 
     //private functions
     void getParamFromRos();
     void kinematicsInit();
     void stabilityInit();
     void staticsInit();
+
+    
+
 
 
     KDL::RigidBodyInertia inertialSetup(const KDL::TreeElement& tree_element);

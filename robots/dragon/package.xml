@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <package>
   <name>dragon</name>
+
   <version>1.3.6</version>
+  
   <description>The dragon package</description>
 
   <maintainer email="chou@jsk.imi.i.u-tokyo.ac.jp">Bakui Chou</maintainer>

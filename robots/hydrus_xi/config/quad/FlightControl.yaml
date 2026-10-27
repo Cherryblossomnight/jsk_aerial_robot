@@ -1,10 +1,10 @@
-aerial_robot_control_name: aerial_robot_control/hydrus_tilted_lqi_controller
+aerial_robot_control_name: aerial_robot_control/hydrus_tilted_impedance_controller
 
 controller:
   xy:
-    p_gain: 2.3 # option: 1.5
+    p_gain: 2.3 # 
     i_gain: 0.02
-    d_gain: 4.0
+    d_gain: 4.0 # impedance: 2.3, lqi: 4.0
     limit_sum: 3
     limit_p: 3
     limit_i: 1.5
@@ -12,8 +12,10 @@ controller:
 
   z:
     p_gain: 3.6
-    i_gain: 1.55
-    d_gain: 5 # old: 3.4
+
+    i_gain: 3.5 # old: 1.55
+    d_gain: 5.0 # old: 3.4leus
+    
     limit_err_p: 1.0
     limit_sum: 25.0 # N for clamping thrust force
     limit_p: 25.0 # m / s^2
@@ -29,6 +31,7 @@ controller:
     limit_p: 15.0
     limit_i: 15.0
     limit_d: 15.0
+    need_d_control: true
 
   # LQI gain generator
   lqi:
@@ -48,6 +51,54 @@ controller:
     r2: 1.0
     r3: 1.0
     r4: 1.0
+
+    trans_constraint_weight: 100
+    att_control_weight: 1
+
+  impedance:
+    gain_generate_rate: 15.0
+    gyro_moment_compensation: true
+    clamp_gain: true
+
+
+    mdx: 0.9
+    mdy: 3.0
+    mdz: 1.0
+    Idx: 10.0
+    Idy: 10.0
+    Idz: 5.0
+
+    # Idy: 0.4
+    # Idz: 0.8
+
+    ma: 10.0
+    ca: 10.0
+    ka: 1.5
+    fref: -1.0
+
+
+    kot: 3.0 
+    kor: 1.0
+
+    x_y_p: 2.5
+    x_y_zeta: 0.80
+
+
+    z_p: 1.5
+    z_zeta: 0.7
+
+    roll_pitch_p: 45.0
+    roll_pitch_zeta: 1.15
+
+    yaw_p: 10.0
+    yaw_zeta: 0.8
+
+
+    joints_p: 13.0
+    joints_d: 2.0
+
+    pos_p: 10.0
+    pos_d: 2.0
 
     trans_constraint_weight: 100
     att_control_weight: 1

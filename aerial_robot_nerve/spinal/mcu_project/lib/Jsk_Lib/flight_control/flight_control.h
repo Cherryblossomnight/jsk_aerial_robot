@@ -52,7 +52,6 @@ public:
     gimbal_dof_sub_ = nh_->subscribe("gimbal_dof", 1, &FlightControl::gimbalDofCallback, this);
 
     att_controller_.init(nh, estimator);
-
     start_control_flag_ = false;
     pwm_test_flag_ = false;
     integrate_flag_ = false;
@@ -73,7 +72,6 @@ public:
   void init(TIM_HandleTypeDef* htim1, TIM_HandleTypeDef* htim2, StateEstimate* estimator, DShot* dshot, DirectServo* servo, BatteryStatus* bat, ros::NodeHandle* nh, osMutexId* mutex = NULL)
   {
     nh_ = nh;
-
     /* config ack to ROS */
     nh_->advertise(config_ack_pub_);
     /* uav & motor type */
@@ -82,6 +80,7 @@ public:
     nh_->subscribe(flight_config_sub_);
     /* gimbal dof info */
     nh_->subscribe(gimbal_dof_sub_);
+
 
     estimator_ = estimator;
 
@@ -93,8 +92,8 @@ public:
     mutex_ = mutex;
 
     att_controller_.init(htim1, htim2, estimator, dshot, servo, bat, nh, mutex);
-    //pos_controller_.init(estimator_, &att_controller_, nh_);
 
+    //pos_controller_.init(estimator_, &att_controller_, nh_);
     start_control_flag_ = false;
     pwm_test_flag_ = false;
     integrate_flag_ = false;

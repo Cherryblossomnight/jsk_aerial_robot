@@ -1,0 +1,9 @@
+<library path="lib/libquad_robot_model">
+
+  <class name="quad_robot_model" type="QuadRobotModel" base_class_type="aerial_robot_model::RobotModel">
+    <description>plugin for mini quadrotor model </description>
+  </class>
+
+
+
+</library>

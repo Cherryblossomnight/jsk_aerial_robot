@@ -11,12 +11,10 @@ namespace flight_controllers
   {
     spinal_interface_ = robot;
     motor_num_ = spinal_interface_->getMotorNum();
-
     int index = n.getNamespace().rfind('/');
     std::string robot_ns = n.getNamespace().substr(0, index);
     ros::NodeHandle n_robot = ros::NodeHandle(robot_ns);
     controller_core_->init(&n_robot, robot->getEstimatorPtr());
-
     return true;
 
   }
@@ -29,7 +27,6 @@ namespace flight_controllers
   {
     /* freeze the attitude estimator while touching the ground, since the bad contact simulation performance in gazebo */
     spinal_interface_->onGround(!controller_core_->getAttController().getIntegrateFlag());
-
     /* update the controller */
     controller_core_->update();
 

@@ -60,7 +60,6 @@ void RobotModel::calcLambdaJacobian()
   }
 
   ROS_DEBUG_STREAM("wrench_gravity_jacobian w.r.t. root : \n" << wrench_gravity_jacobian);
-
   if(wrench_dof == 6) // fully-actuated
     lambda_jacobian_ = -q_pseudo_inv * wrench_gravity_jacobian; // trans, rot
   else // under-actuated

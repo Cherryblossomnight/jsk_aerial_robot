@@ -61,7 +61,6 @@ namespace aerial_robot_control
     pid_msg_.z.total.resize(motor_num_);
     z_limit_ = pid_controllers_.at(Z).getLimitSum();
     pid_controllers_.at(Z).setLimitSum(1e6); // do not clamp the sum of PID terms for z axis
-
     rpy_gain_pub_ = nh_.advertise<spinal::RollPitchYawTerms>("rpy/gain", 1);
     flight_cmd_pub_ = nh_.advertise<spinal::FourAxisCommand>("four_axes/command", 1);
     torque_allocation_matrix_inv_pub_ = nh_.advertise<spinal::TorqueAllocationMatrixInv>("torque_allocation_matrix_inv", 1);

@@ -199,10 +199,8 @@ namespace aerial_robot_control
   bool PoseLinearController::update()
   {
     if(!ControlBase::update()) return false;
-
     controlCore();
     sendCmd();
-
     return true;
   }
 
@@ -213,7 +211,6 @@ namespace aerial_robot_control
     target_pos_ = navigator_->getTargetPos();
     target_vel_ = navigator_->getTargetVel();
     target_acc_ = navigator_->getTargetAcc();
-
     // rpy_ = estimator_->getEuler(Frame::COG, estimate_mode_);
     tf::Quaternion cog2baselink_rot;
     tf::quaternionKDLToTF(robot_model_->getCogDesireOrientation<KDL::Rotation>(), cog2baselink_rot);
@@ -271,6 +268,8 @@ namespace aerial_robot_control
       }
 
     pid_controllers_.at(Z).update(err_z, du_z, err_v_z, target_acc_.z());
+
+
 
     if(pid_controllers_.at(Z).getErrI() < 0) pid_controllers_.at(Z).setErrI(0);
 

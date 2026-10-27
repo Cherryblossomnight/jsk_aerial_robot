@@ -34,6 +34,7 @@ bool HydrusTiltedLQIController::checkRobotModel()
   return true;
 }
 
+
 /* plugin registration */
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(aerial_robot_control::HydrusTiltedLQIController, aerial_robot_control::ControlBase);

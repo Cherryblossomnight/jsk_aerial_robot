@@ -49,6 +49,7 @@ namespace aerial_robot_model {
     /* robot model */
     if (!model_.initParam("robot_description"))
       {
+ 
         ROS_ERROR("Failed to extract urdf model from rosparam");
         return;
       }
@@ -142,6 +143,7 @@ namespace aerial_robot_model {
 
     KDL::RigidBodyInertia current_seg_inertia = current_seg.getInertia();
     if(verbose_) ROS_WARN_STREAM("segment " <<  current_seg.getName() << ", mass is: " << current_seg_inertia.getMass());
+  
 
     /* check whether this can be a base inertia segment (i.e. link) */
     /* 1. for the "root" parent link (i.e. link1) */
@@ -155,12 +157,15 @@ namespace aerial_robot_model {
         if(verbose_) ROS_WARN("Add root link: %s", child_seg.getName().c_str());
 
       }
+
     /* 2. for segment that has joint with parent segment */
     if (current_seg.getJoint().getType() != KDL::Joint::None)
       {
+      
         /* add the new inertia base (child) link if the joint is not a rotor */
         if(current_seg.getJoint().getName().find("rotor") == std::string::npos)
           {
+           
             /* create a new inertia base link */
             inertia_map_.insert(std::make_pair(current_seg.getName(), current_seg_inertia));
             joint_index_map_.insert(std::make_pair(current_seg.getJoint().getName(), tree_element.q_nr));
@@ -181,6 +186,11 @@ namespace aerial_robot_model {
             if(verbose_) ROS_WARN("joint name: %s, z axis: %f", current_seg.getJoint().getName().c_str(), urdf_joint->axis.z);
             rotor_direction_.insert(std::make_pair(std::atoi(current_seg.getJoint().getName().substr(5).c_str()), urdf_joint->axis.z));
           }
+      }
+
+      if (current_seg.getName().find("end_effector") != std::string::npos || current_seg.getName().find("end_frame") != std::string::npos)
+      {
+          inertia_map_.insert(std::make_pair(current_seg.getName(), current_seg_inertia));
       }
 
     /* recursion process for children segment */
@@ -253,6 +263,7 @@ namespace aerial_robot_model {
 
   bool RobotModel::addExtraModule(std::string module_name, std::string parent_link_name, KDL::Frame transform, KDL::RigidBodyInertia inertia)
   {
+
     if(extra_module_map_.find(module_name) == extra_module_map_.end())
       {
         if(inertia_map_.find(parent_link_name) == inertia_map_.end())
@@ -361,9 +372,10 @@ namespace aerial_robot_model {
     setCog(cog);
     mass_ = link_inertia.getMass();
     ROS_INFO_STREAM_ONCE("[aerial_robot_model] robot mass is " << mass_);
-
+ 
     setInertia((cog.Inverse() * link_inertia).getRotationalInertia());
     setCog2Baselink(cog.Inverse() * f_baselink);
+
 
     /* thrust point based on COG */
     std::vector<KDL::Vector> rotors_origin_from_cog, rotors_normal_from_cog;
@@ -373,7 +385,7 @@ namespace aerial_robot_model {
         KDL::Frame f = seg_tf_map.at(rotor);
         if(verbose_) ROS_WARN(" %s : [%f, %f, %f]", rotor.c_str(), f.p.x(), f.p.y(), f.p.z());
         rotors_origin_from_cog.push_back((cog.Inverse() * f).p);
-        rotors_normal_from_cog.push_back((cog.Inverse() * f).M * KDL::Vector(0, 0, 1));
+        rotors_normal_from_cog.push_back((cog.Inverse() * f).M * KDL::Vector(0, 0, 1)); 
       }
     setRotorsNormalFromCog(rotors_normal_from_cog);
     setRotorsOriginFromCog(rotors_origin_from_cog);
@@ -452,6 +464,7 @@ namespace aerial_robot_model {
       Q.block(0, i, 3, 1) = u.at(i);
       Q.block(3, i, 3, 1) = p.at(i).cross(u.at(i)) + m_f_rate * sigma.at(i + 1) * u.at(i);
     }
+
     return Q;
   }
 
@@ -654,5 +667,33 @@ namespace aerial_robot_model {
     return joint_positions;
   }
 
-} //namespace aerial_robot_model
+  Eigen::MatrixXd RobotModel::getJacobian(const KDL::JntArray& joint_positions, std::string segment_name, KDL::Vector offset)
+  {
+    Eigen::MatrixXd jac_all = Eigen::MatrixXd::Identity(6, 6 + getJointNum());
+    return jac_all;
+  }
+
+  void RobotModel::updateJacobians()
+  {
+    
+  }
+
+  Eigen::MatrixXd RobotModel::getJacobians(std::string segment_name)
+  {
+    return Eigen::Matrix3d::Zero();
+  }
+
+  Eigen::MatrixXd RobotModel::getPosition(std::string segment_name)
+  {
+    return Eigen::Matrix3d::Zero();
+  }
+
+  Eigen::MatrixXd RobotModel::getRotation(std::string segment_name)
+  {
+    return Eigen::Matrix3d::Zero();
+  }
+}
+
+
+//namespace aerial_robot_model
 

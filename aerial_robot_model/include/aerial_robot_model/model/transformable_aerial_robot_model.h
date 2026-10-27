@@ -48,6 +48,7 @@ namespace aerial_robot_model {
 
       virtual void updateJacobians();
       virtual void updateJacobians(const KDL::JntArray& joint_positions, bool update_model = true);
+      // virtual void updateKinematicJacobians(const sensor_msgs::JointState& state);
 
       // kinematics
       const std::vector<std::string>& getLinkJointNames() const { return link_joint_names_; }
@@ -80,6 +81,10 @@ namespace aerial_robot_model {
       virtual void calcFeasibleControlJacobian();
       const Eigen::MatrixXd& getFeasibleControlFDistsJacobian() const { return fc_f_dists_jacobian_; }
       const Eigen::MatrixXd& getFeasibleControlTDistsJacobian() const { return fc_t_dists_jacobian_; }
+
+      virtual Eigen::MatrixXd getJacobians(std::string segment_name);
+      virtual Eigen::MatrixXd getPosition(std::string segment_name);
+      virtual Eigen::MatrixXd getRotation(std::string segment_name);
 
       // utils
       virtual Eigen::MatrixXd convertJacobian(const Eigen::MatrixXd& in);
@@ -117,8 +122,14 @@ namespace aerial_robot_model {
       Eigen::MatrixXd fc_f_dists_jacobian_;
       Eigen::MatrixXd fc_t_dists_jacobian_;
 
+      std::map<std::string, Eigen::MatrixXd> jacobians_map_; //
+      std::map<std::string, Eigen::MatrixXd> position_map_; //
+      std::map<std::string, Eigen::MatrixXd> rotation_map_; //
+
       //private functions
       void resolveLinkLength();
+
+     
 
     protected:
 

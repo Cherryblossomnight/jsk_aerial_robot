@@ -1,4 +1,4 @@
-aerial_robot_control_name: aerial_robot_control/dragon_full_vectoring
+aerial_robot_control_name: aerial_robot_control/dragon_full_vectoring_impedance
 
 controller:
 
@@ -19,7 +19,7 @@ controller:
   allocation_refine_threshold: 0.0001 # for static allocation
 
   wrench_estimate_update_rate: 100
-  momentum_observer_force_weight: 3 # heavy delay, less noise, 2, 2.5, 3, light delay, more noise. The old parameter 5 has bug
+  momentum_observer_force_weight: 2.0 # heavy delay, less noise, 2, 2.5, 3, light delay, more noise. The old parameter 5 has bug
   momentum_observer_torque_weight: 2.5
 
   rotor_interfere_compensate: true # enable compensation
@@ -63,7 +63,7 @@ controller:
 
   z:
     p_gain: 2.8
-    i_gain: 1.2
+    i_gain: 1.4 # 1.2
     d_gain: 2.8
     limit_err_p: 1.0
     limit_sum: 20 # m / s^2
@@ -92,3 +92,34 @@ controller:
     limit_d: 10
     limit_err_p: 0.4
     need_d_control: true
+
+  mdx: 0.9
+  mdy: 5.0
+  mdz: 5.0
+  Idx: 10.0
+  Idy: 10.0
+  Idz: 3.0
+
+  # Idy: 0.4
+  # Idz: 0.8
+
+  max: 15.0
+  cax: 30.0
+  kax: 15.0
+  mayz: 15.0
+  cayz: 30.0
+  kayz: 15.0
+  fref: 0.0
+
+  x_y_p: 3.6
+  x_y_zeta: 0.80
+
+
+  z_p: 3.6
+  z_zeta: 0.9
+
+  roll_pitch_p: 15.0
+  roll_pitch_zeta: 0.85
+
+  yaw_p: 10.0
+  yaw_zeta: 0.75

@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   tf_conversions
   std_srvs
   )
-
 find_package(Eigen3 REQUIRED)
 
 catkin_package(
@@ -44,7 +43,13 @@ include_directories(
   ${Boost_INCLUDE_DIR}
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+  /home/cherryblossomnight/ros/catkin_ws/src/motion_planning/aerial_motion/differential_kinematics/include
 )
+
+
+add_library(hydrus_sensor_pluginlib  src/imu.cpp)
+target_link_libraries(hydrus_sensor_pluginlib ${catkin_LIBRARIES})
+add_dependencies(hydrus_sensor_pluginlib aerial_robot_msgs_generate_messages_cpp spinal_generate_messages_cpp)
 
 add_library(hydrus_robot_model
   src/hydrus_robot_model.cpp
@@ -54,8 +59,10 @@ target_link_libraries(hydrus_robot_model ${catkin_LIBRARIES})
 ### flight control plugin
 add_library(hydrus_controller_pluginlib
   src/hydrus_lqi_controller.cpp
-  src/hydrus_tilted_lqi_controller.cpp)
-target_link_libraries(hydrus_controller_pluginlib hydrus_robot_model ${catkin_LIBRARIES} ${EIGEN3_LIBRARIES})
+  src/hydrus_impedance_controller.cpp
+  src/hydrus_tilted_lqi_controller.cpp
+  src/hydrus_tilted_impedance_controller.cpp)
+target_link_libraries(hydrus_controller_pluginlib hydrus_sensor_pluginlib hydrus_robot_model ${catkin_LIBRARIES} ${EIGEN3_LIBRARIES})
 add_dependencies(hydrus_controller_pluginlib aerial_robot_msgs_generate_messages_cpp spinal_generate_messages_cpp)
 
 # test
@@ -65,7 +72,6 @@ target_link_libraries(hydrus_numerical_jacobians hydrus_robot_model ${catkin_LIB
 add_executable(hydrus_jacobian_test test/hydrus/jacobian_test.cpp)
 target_link_libraries(hydrus_jacobian_test hydrus_numerical_jacobians ${catkin_LIBRARIES} ${GTEST_LIBRARIES})
 
-
 install(DIRECTORY include/${PROJECT_NAME}/ test/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
@@ -73,7 +79,7 @@ install(TARGETS hydrus_jacobian_test
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-install(TARGETS hydrus_robot_model hydrus_controller_pluginlib hydrus_numerical_jacobians
+install(TARGETS hydrus_sensor_pluginlib hydrus_robot_model hydrus_controller_pluginlib hydrus_numerical_jacobians
   DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 )
 
