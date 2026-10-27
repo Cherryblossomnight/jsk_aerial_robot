@@ -82,9 +82,9 @@ namespace aerial_robot_model {
       const Eigen::MatrixXd& getFeasibleControlFDistsJacobian() const { return fc_f_dists_jacobian_; }
       const Eigen::MatrixXd& getFeasibleControlTDistsJacobian() const { return fc_t_dists_jacobian_; }
 
-      virtual Eigen::MatrixXd getJacobians(std::string segment_name);
-      virtual Eigen::MatrixXd getPosition(std::string segment_name);
-      virtual Eigen::MatrixXd getRotation(std::string segment_name);
+      // virtual Eigen::MatrixXd getJacobians(std::string segment_name);
+      // virtual Eigen::MatrixXd getPosition(std::string segment_name);
+      // virtual Eigen::MatrixXd getRotation(std::string segment_name);
 
       // utils
       virtual Eigen::MatrixXd convertJacobian(const Eigen::MatrixXd& in);

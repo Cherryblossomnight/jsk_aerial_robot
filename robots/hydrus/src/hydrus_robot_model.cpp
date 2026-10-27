@@ -105,15 +105,17 @@ void HydrusRobotModel::calcWrenchMatrixOnRoot()
 
 void HydrusRobotModel::calcStaticThrust()
 {
+  std::cout<<"aa"<<std::endl;
   calcWrenchMatrixOnRoot(); // update Q matrix
 
   Eigen::VectorXd wrench_g = calcGravityWrenchOnRoot();
   const auto& wrench_mat = getThrustWrenchMatrix();
-
+  std::cout<<"bb"<<std::endl;
   // under-actuated
 
   Eigen::VectorXd static_thrust = aerial_robot_model::pseudoinverse(wrench_mat) * (-wrench_g.segment(2, wrench_dof_));
   setStaticThrust(static_thrust);
+    std::cout<<"cc"<<std::endl;
 }
 
 void HydrusRobotModel::getParamFromRos()

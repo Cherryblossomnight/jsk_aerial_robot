@@ -208,21 +208,22 @@ void HydrusLikeRobotModel::calcCoGMomentumJacobian()
 
 void HydrusLikeRobotModel::updateJacobians(const KDL::JntArray& joint_positions, bool update_model)
 {
+  std::cout<<"a1"<<std::endl;
 
   if(update_model) updateRobotModel(joint_positions);
-
+ std::cout<<"a2"<<std::endl;
   calcCoGMomentumJacobian(); // should be processed first!
 
   calcBasicKinematicsJacobian(); // need cog_jacobian_
 
   //calcStaticThrust(); //
-
+ std::cout<<"a3"<<std::endl;
   calcLambdaJacobian();
-
+std::cout<<"a4"<<std::endl;
   calcJointTorque(false);
-
+std::cout<<"a5"<<std::endl;
   calcJointTorqueJacobian();
-
+std::cout<<"a6"<<std::endl;
   // external wrench realted jacobians
   calcExternalWrenchCompThrust();
   calcCompThrustJacobian();
@@ -232,7 +233,7 @@ void HydrusLikeRobotModel::updateJacobians(const KDL::JntArray& joint_positions,
   addCompThrustToJointTorqueJacobian();
 
   calcFeasibleControlRollPitchDistsJacobian();
-
+ std::cout<<"a7"<<std::endl;
   // convert to jacobian only for link joint
   std::vector<Eigen::MatrixXd> u_jacobians = getUJacobians();
   for(auto& jacobian: u_jacobians)
@@ -252,7 +253,7 @@ void HydrusLikeRobotModel::updateJacobians(const KDL::JntArray& joint_positions,
   std::vector<Eigen::MatrixXd> cog_coord_jacobians = getCOGCoordJacobians();
   for(auto& jacobian: cog_coord_jacobians) jacobian = jacobian * gimbal_jacobian_;
   setCOGCoordJacobians(cog_coord_jacobians);
-
+ std::cout<<"a5"<<std::endl;
   Eigen::MatrixXd cog_jacobian = getCOGJacobian();
   setCOGJacobian(cog_jacobian * gimbal_jacobian_);
   Eigen::MatrixXd l_momentum_jacobian = getLMomentumJacobian();
@@ -271,6 +272,7 @@ void HydrusLikeRobotModel::updateJacobians(const KDL::JntArray& joint_positions,
 
   // update jacobian for rotor overlap
   calcRotorOverlapJacobian();
+   std::cout<<"a6"<<std::endl;
 }
 
 void HydrusLikeRobotModel::calcRotorOverlapJacobian()

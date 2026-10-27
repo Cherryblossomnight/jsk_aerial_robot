@@ -17,20 +17,20 @@ Eigen::MatrixXd RobotModel::getJacobian(const KDL::JntArray& joint_positions, st
   Eigen::MatrixXd jac_joint = convertJacobian(jac.data);
   // return jac_joint; // only joint jacobian
   // std::cout<<segment_name<<std::endl;
-  if (jacobians_map_.find(segment_name) != jacobians_map_.end()) 
-    jacobians_map_.at(segment_name) = jac_joint;
-  else
-    jacobians_map_.insert(std::make_pair(segment_name, jac_joint));
+  // if (jacobians_map_.find(segment_name) != jacobians_map_.end()) 
+  //   jacobians_map_.at(segment_name) = jac_joint;
+  // else
+  //   jacobians_map_.insert(std::make_pair(segment_name, jac_joint));
 
-  if (position_map_.find(segment_name) != position_map_.end()) 
-    position_map_.at(segment_name) = kdlToEigen(seg_frames.at(segment_name).p);
-  else
-    position_map_.insert(std::make_pair(segment_name, kdlToEigen(seg_frames.at(segment_name).p)));
+  // if (position_map_.find(segment_name) != position_map_.end()) 
+  //   position_map_.at(segment_name) = kdlToEigen(seg_frames.at(segment_name).p);
+  // else
+  //   position_map_.insert(std::make_pair(segment_name, kdlToEigen(seg_frames.at(segment_name).p)));
 
-  if (rotation_map_.find(segment_name) != rotation_map_.end()) 
-    rotation_map_.at(segment_name) = kdlToEigen(seg_frames.at(segment_name).M);
-  else
-    rotation_map_.insert(std::make_pair(segment_name, kdlToEigen(seg_frames.at(segment_name).M)));
+  // if (rotation_map_.find(segment_name) != rotation_map_.end()) 
+  //   rotation_map_.at(segment_name) = kdlToEigen(seg_frames.at(segment_name).M);
+  // else
+  //   rotation_map_.insert(std::make_pair(segment_name, kdlToEigen(seg_frames.at(segment_name).M)));
     
 
   // add virtual 6dof root
@@ -49,18 +49,18 @@ Eigen::MatrixXd RobotModel::getJacobian(const KDL::JntArray& joint_positions, st
 }
 
 
-Eigen::MatrixXd RobotModel::getJacobians(std::string segment_name)
-{
-  return jacobians_map_.at(segment_name);
-}
-Eigen::MatrixXd RobotModel::getPosition(std::string segment_name)
-{
-  return position_map_.at(segment_name);
-}
-Eigen::MatrixXd RobotModel::getRotation(std::string segment_name)
-{
-  return rotation_map_.at(segment_name);
-}
+// Eigen::MatrixXd RobotModel::getJacobians(std::string segment_name)
+// {
+//   return jacobians_map_.at(segment_name);
+// }
+// Eigen::MatrixXd RobotModel::getPosition(std::string segment_name)
+// {
+//   return position_map_.at(segment_name);
+// }
+// Eigen::MatrixXd RobotModel::getRotation(std::string segment_name)
+// {
+//   return rotation_map_.at(segment_name);
+// }
 
 
 Eigen::MatrixXd RobotModel::convertJacobian(const Eigen::MatrixXd& in)

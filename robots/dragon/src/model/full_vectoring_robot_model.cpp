@@ -392,6 +392,7 @@ void FullVectoringRobotModel::getParamFromRos()
 
 void FullVectoringRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_positions)
 {
+  std::cout<<"11"<<std::endl;
   KDL::Rotation cog_desire_orientation = getCogDesireOrientation<KDL::Rotation>();
   robot_model_for_plan_->setCogDesireOrientation(cog_desire_orientation); // update the cog orientation
 
@@ -406,7 +407,7 @@ void FullVectoringRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_po
   std::vector<double> gimbal_nominal_angles(0);
   std::vector<KDL::Rotation> links_rotation_from_cog(0);
   std::vector<int> roll_locked_gimbal(getRotorNum(), 0);
-
+std::cout<<"22"<<std::endl;
 
   for(int i = 0; i < getRotorNum(); ++i)
     {
@@ -438,7 +439,7 @@ void FullVectoringRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_po
 
       last_links_rotation_from_cog_ = links_rotation_from_cog; // for configuration fix check
     }
-
+std::cout<<"33"<<std::endl;
 
   /* 2. check the orientation (pitch angle) of link to decide whether to lock gimbal roll */
   // TODO: we should not use the link pitch angle to decide, should use the angle between link and gimbal (thus means the gimbal pitch angle)
@@ -489,7 +490,7 @@ void FullVectoringRobotModel::updateRobotModelImpl(const KDL::JntArray& joint_po
 
     }
   ROS_DEBUG_STREAM_THROTTLE_NAMED(1.0, "robot_model", "max link pitch: " << max_pitch);
-
+std::cout<<"44"<<std::endl;
   /* 3. calculate the optimized locked gimbal roll angles */
   int gimbal_lock_num = std::accumulate(roll_locked_gimbal.begin(), roll_locked_gimbal.end(), 0);
 
